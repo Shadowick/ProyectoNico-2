@@ -1,0 +1,37 @@
+.resultado {
+  margin-top: 1rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.pregunta {
+  margin-bottom: 0.8rem;
+}
+
+.fecha-hoy-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fecha-hoy-wrapper input[type="date"] {
+  flex: 0 0 75%;
+}
+
+/* Grupo de checkboxes (tratamiento diabetes) */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Wrapper para el porcentaje de HbA1c */
+.porcentaje-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.porcentaje-wrapper input[type="number"] {
+  max-width: 6rem;
+}

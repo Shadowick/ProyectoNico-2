@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formulario de Registro</title>
+
+  <!-- Pico CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" />
+
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>Registro Médico</strong></li>
+    </ul>
+    <ul>
+      <li><a href="#">Inicio</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <div class="grid">
+      <section>
+        <hgroup>
+          <h2>Formulario de Registro</h2>
+          <h3>Complete los siguientes datos del paciente</h3>
+        </hgroup>
+
+        <form id="formulario">
+
+          <!-- =================== Identificación =================== -->
+          <fieldset>
+            <legend>Identificación</legend>
+
+            <div class="grid">
+              <div>
+                <label for="ID_paciente">Identificador del paciente (código o DNI)</label>
+                <input type="number" id="ID_paciente" name="ID_paciente" />
+              </div>
+
+              <div>
+                <label for="Fecha_consulta">Fecha de la consulta</label>
+                <div class="fecha-hoy-wrapper">
+                  <input type="date" id="Fecha_consulta" name="Fecha_consulta" />
+                  <button type="button" id="btnHoyFecha">Hoy</button>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- =================== Vivienda =================== -->
+          <fieldset>
+            <legend>Vivienda</legend>
+
+            <label for="Agua_potable">¿Tiene acceso a agua potable?</label>
+            <select id="Agua_potable" name="Agua_potable">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+            </select>
+
+            <label for="Cloaca">¿Tiene acceso a red de cloacas/saneamiento?</label>
+            <select id="Cloaca" name="Cloaca">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+            </select>
+          </fieldset>
+
+          <!-- =================== Sociodemográficos =================== -->
+          <fieldset>
+            <legend>Sociodemográficos</legend>
+
+            <label for="Edad">Edad del paciente</label>
+            <input type="number" id="Edad" name="Edad" min="0" max="150" />
+
+            <label for="Sexo_registrado">¿Cuál es su sexo registrado en el DNI?</label>
+            <select id="Sexo_registrado" name="Sexo_registrado">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Varón</option>
+              <option value="2">Mujer</option>
+              <option value="3">No binario</option>
+              <option value="4">Prefiere no responder</option>
+            </select>
+
+            <label for="Estado_civil">¿Cuál es su situación conyugal actual?</label>
+            <select id="Estado_civil" name="Estado_civil">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Soltero/a</option>
+              <option value="2">En pareja</option>
+              <option value="3">Separado/divorciado</option>
+              <option value="4">Viudo/a</option>
+            </select>
+
+            <label for="Nivel_educativo">¿Cuál es el nivel educativo más alto que alcanzó?</label>
+            <select id="Nivel_educativo" name="Nivel_educativo">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sin instrucción</option>
+              <option value="2">Primaria incompleta</option>
+              <option value="3">Primaria completa</option>
+              <option value="4">Secundaria incompleta</option>
+              <option value="5">Secundaria completa</option>
+              <option value="6">Terciaria/Universitaria incompleta</option>
+              <option value="7">Terciaria/Universitaria completa</option>
+            </select>
+
+            <label for="Cobertura_salud">¿Tiene alguna cobertura de salud (obra social, prepaga, etc.)?</label>
+            <select id="Cobertura_salud" name="Cobertura_salud">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+            </select>
+
+            <label for="Situacion_laboral">¿Cuál es su situación laboral actual?</label>
+            <select id="Situacion_laboral" name="Situacion_laboral">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Trabaja</option>
+              <option value="2">No trabaja pero busca trabajo</option>
+              <option value="3">No trabaja ni busca trabajo</option>
+            </select>
+          </fieldset>
+
+          <!-- =================== Conductas: Tabaquismo =================== -->
+          <fieldset>
+            <legend>Conductas: Tabaquismo</legend>
+
+            <label for="Fuma_actualmente">
+              ¿Actualmente fuma algún producto de tabaco (cigarrillos fabricados, cigarrillo armado,
+              cigarrillo con cápsula, cigarrillo electrónico)?
+            </label>
+            <select id="Fuma_actualmente" name="Fuma_actualmente">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+
+            <div id="bloque_tabaco_extra">
+              <label for="Fuma_producto">¿Qué producto fuma?</label>
+              <select id="Fuma_producto" name="Fuma_producto">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Cigarrillo fabricado</option>
+                <option value="2">Cigarrillo armado</option>
+                <option value="3">Cigarrillo con cápsula</option>
+                <option value="4">Cigarrillo electrónico o vapeo</option>
+                <option value="5">Tabaco calentado</option>
+                <option value="6">Bolsa de nicotina</option>
+                <option value="7">Otro</option>
+              </select>
+
+              <label for="Frecuencia_fumador">
+                ¿Fuma diariamente o solo ocasionalmente?
+              </label>
+              <select id="Frecuencia_fumador" name="Frecuencia_fumador">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Diariamente</option>
+                <option value="2">Ocasionalmente</option>
+              </select>
+
+              <label for="Edad_inicio_tabaco">¿A qué edad comenzó a fumar con regularidad?</label>
+              <input
+                type="number"
+                id="Edad_inicio_tabaco"
+                name="Edad_inicio_tabaco"
+                min="0"
+                max="120"
+              />
+
+              <label for="Intento_dejar_tabaco">
+                ¿Ha intentado dejar de fumar en los últimos 12 meses?
+              </label>
+              <select id="Intento_dejar_tabaco" name="Intento_dejar_tabaco">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Sí</option>
+                <option value="2">No</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <!-- =================== Conductas: Alcohol =================== -->
+          <fieldset>
+            <legend>Conductas: Alcohol</legend>
+
+            <label for="Frecuencia_alcohol">
+              ¿Con qué frecuencia consume bebidas alcohólicas?
+            </label>
+            <select id="Frecuencia_alcohol" name="Frecuencia_alcohol">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Nunca</option>
+              <option value="2">1 vez al mes o menos</option>
+              <option value="3">2 a 4 veces al mes</option>
+              <option value="4">2 a 3 veces por semana</option>
+              <option value="5">4 o más veces por semana</option>
+            </select>
+
+            <div id="bloque_alcohol_extra">
+              <label for="Cantidad_alcohol">
+                Cuando toma, ¿cuántas bebidas alcohólicas consume en un día típico?
+              </label>
+              <select id="Cantidad_alcohol" name="Cantidad_alcohol">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">1 o 2</option>
+                <option value="2">3 o 4</option>
+                <option value="3">5 o 6</option>
+                <option value="4">7 a 9</option>
+                <option value="5">10 o más</option>
+              </select>
+
+              <label for="Exceso_ocasion">
+                ¿Con qué frecuencia toma 6 o más bebidas en una sola ocasión?
+              </label>
+              <select id="Exceso_ocasion" name="Exceso_ocasion">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Nunca</option>
+                <option value="2">Menos de una vez al mes</option>
+                <option value="3">Mensualmente</option>
+                <option value="4">Semanalmente</option>
+                <option value="5">A diario o casi a diario</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <!-- =================== Conductas: Actividad física =================== -->
+          <fieldset>
+            <legend>Conductas: Actividad física</legend>
+
+            <label for="Actividad150min">
+              ¿En las últimas 2 semanas realizó actividad física moderada o intensa
+              por al menos 150 minutos semanales?
+            </label>
+            <select id="Actividad150min" name="Actividad150min">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+
+            <label for="Motivo_actividad">
+              ¿Cuál es el motivo principal por el que la realiza o no la realiza?
+            </label>
+            <select id="Motivo_actividad" name="Motivo_actividad">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Salud</option>
+              <option value="2">Trabajo</option>
+              <option value="3">Recreación</option>
+              <option value="4">Falta de tiempo</option>
+              <option value="5">Problemas físicos</option>
+              <option value="6">No le interesa</option>
+            </select>
+          </fieldset>
+
+          <!-- =================== Biomédico =================== -->
+          <fieldset>
+            <legend>Biomédico</legend>
+
+            <label for="Diagnostico_diabetes">
+              ¿Tiene diagnóstico previo de diabetes (incluye diabetes gestacional)?
+            </label>
+            <select id="Diagnostico_diabetes" name="Diagnostico_diabetes">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+            </select>
+
+            <div id="bloque_tratamiento_diabetes" style="display:none;">
+              <label for="Tratamiento_diabetes">¿Recibe tratamiento actualmente por diabetes?</label>
+              <select id="Tratamiento_diabetes" name="Tratamiento_diabetes">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Sí</option>
+                <option value="2">No</option>
+                <option value="3">No sabe</option>
+              </select>
+            </div>
+
+            <div id="bloque_tipo_tratamiento_diabetes" style="display:none;">
+              <label>
+                ¿Qué tipo de tratamiento utiliza para la diabetes? (puede seleccionar más de una opción)
+              </label>
+              <div class="checkbox-group" id="Tipo_tratamiento_diabetes_group">
+                <label>
+                  <input type="checkbox" id="Tto_diab_dieta" name="Tto_diab_dieta" value="1">
+                  Dieta
+                </label>
+                <label>
+                  <input type="checkbox" id="Tto_diab_ADO" name="Tto_diab_ADO" value="1">
+                  ADO
+                </label>
+                <label>
+                  <input type="checkbox" id="Tto_diab_insulina" name="Tto_diab_insulina" value="1">
+                  Insulina
+                </label>
+                <label>
+                  <input type="checkbox" id="Tto_diab_otro" name="Tto_diab_otro" value="1">
+                  Otro
+                </label>
+              </div>
+            </div>
+
+            <div id="bloque_hba1c" style="display:none;">
+              <label for="Hemoglobina_glicosilada">
+                ¿Cuál es el valor más reciente de hemoglobina glicosilada (HbA1c)?
+              </label>
+              <div class="porcentaje-wrapper">
+                <input
+                  type="number"
+                  id="Hemoglobina_glicosilada"
+                  name="Hemoglobina_glicosilada"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                />
+                <span>%</span>
+              </div>
+            </div>
+
+            <label for="Diagnostico_dislipidemia">
+              ¿Tiene diagnóstico conocido de dislipidemia?
+            </label>
+            <select id="Diagnostico_dislipidemia" name="Diagnostico_dislipidemia">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+            </select>
+
+            <label for="Colesterol_total">
+              Colesterol total (valor de laboratorio más reciente)
+            </label>
+            <input type="number" id="Colesterol_total" name="Colesterol_total" min="0" step="0.01" />
+
+            <label for="HDL">
+              Colesterol HDL (valor más reciente)
+            </label>
+            <input type="number" id="HDL" name="HDL" min="0" step="0.01" />
+
+            <label for="LDL">
+              Colesterol LDL (valor más reciente)
+            </label>
+            <input type="number" id="LDL" name="LDL" min="0" step="0.01" />
+
+            <label for="Trigliceridos">
+              Triglicéridos (valor más reciente)
+            </label>
+            <input type="number" id="Trigliceridos" name="Trigliceridos" min="0" step="0.01" />
+
+            <label for="Diagnostico_HTA">
+              ¿Tiene diagnóstico previo de hipertensión arterial?
+            </label>
+            <select id="Diagnostico_HTA" name="Diagnostico_HTA">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+            </select>
+
+            <!-- Todo lo relacionado al tratamiento se hace dependiente del diagnóstico (a futuro) -->
+            <div id="bloque_hta_extra" style="display:none;">
+              <label for="Tratamiento_HTA">
+                ¿Recibe tratamiento actualmente por hipertensión arterial?
+              </label>
+              <select id="Tratamiento_HTA" name="Tratamiento_HTA">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Sí</option>
+                <option value="2">No</option>
+                <option value="3">No sabe</option>
+              </select>
+
+            <div id="bloque_tipo_tratamiento_hta" style="display:none;">
+                <label>
+                    ¿Qué tipo de tratamiento utiliza para la hipertensión? (puede seleccionar más de una opción)
+                </label>
+                    <div class="checkbox-group" id="Tipo_tratamiento_hta_group">
+                        <label>
+                        <input type="checkbox" id="Tto_hta_IECA" name="Tto_hta_IECA" value="1">
+                        IECA
+                        </label>
+                        <label>
+                        <input type="checkbox" id="Tto_hta_ARAII" name="Tto_hta_ARAII" value="1">
+                        ARA II
+                        </label>
+                        <label>
+                        <input type="checkbox" id="Tto_hta_BB" name="Tto_hta_BB" value="1">
+                        Betabloqueantes
+                        </label>
+                        <label>
+                        <input type="checkbox" id="Tto_hta_diureticos" name="Tto_hta_diureticos" value="1">
+                        Diuréticos
+                        </label>
+                        <label>
+                        <input type="checkbox" id="Tto_hta_otros" name="Tto_hta_otros" value="1">
+                        Otros
+                        </label>
+                    </div>
+            </div>
+
+              <label for="Adherencia_tratamiento_HTA">
+                Toma la medicación según lo indicado por su médico
+              </label>
+              <select id="Adherencia_tratamiento_HTA" name="Adherencia_tratamiento_HTA">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Sí</option>
+                <option value="2">No</option>
+                <option value="3">No sabe</option>
+              </select>
+            </div>
+
+            <div class="grid">
+              <div>
+                <label for="TA_sistolica">TA sistólica (mmHg)</label>
+                <input
+                  type="number"
+                  id="TA_sistolica"
+                  name="TA_sistolica"
+                  min="0"
+                  max="999"
+                />
+              </div>
+
+              <div>
+                <label for="TA_diastolica">TA diastólica (mmHg)</label>
+                <input
+                  type="number"
+                  id="TA_diastolica"
+                  name="TA_diastolica"
+                  min="0"
+                  max="999"
+                />
+              </div>
+            </div>
+
+            <label for="Peso">
+              Peso del paciente (medido en kg)
+            </label>
+            <input type="number" id="Peso" name="Peso" min="0" step="0.01" />
+
+            <label for="Talla">
+              Talla del paciente (medida en cm)
+            </label>
+            <input type="number" id="Talla" name="Talla" step="0.1" />
+
+            <label for="IMC">
+              Índice de masa corporal (IMC = peso(kg) / altura(m²))
+            </label>
+            <input type="number" id="IMC" name="IMC" step="0.01" readonly />
+          </fieldset>
+
+          <!-- =================== Salud mental =================== -->
+          <fieldset>
+            <legend>Salud mental</legend>
+
+            <label for="PHQ2_item1">
+              En las últimas 2 semanas, ¿tuvo poco interés o placer en hacer las cosas?
+            </label>
+            <select id="PHQ2_item1" name="PHQ2_item1">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
+            </select>
+
+            <label for="PHQ2_item2">
+              En las últimas 2 semanas, ¿se ha sentido decaído, deprimido o sin esperanzas?
+            </label>
+            <select id="PHQ2_item2" name="PHQ2_item2">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
+            </select>
+
+            <label for="GAD2_item1">
+              En las últimas 2 semanas, ¿se sintió nervioso, ansioso o al límite?
+            </label>
+            <select id="GAD2_item1" name="GAD2_item1">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
+            </select>
+
+            <label for="GAD2_item2">
+              En las últimas 2 semanas, ¿no pudo dejar de preocuparse o controlar la preocupación?
+            </label>
+            <select id="GAD2_item2" name="GAD2_item2">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
+            </select>
+          </fieldset>
+
+          <!-- =================== Salud general =================== -->
+          <fieldset>
+            <legend>Salud general</legend>
+
+            <label for="Transito">
+              ¿En los últimos 12 meses, ha estado involucrado en un accidente de tránsito?
+            </label>
+            <select id="Transito" name="Transito">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Si, como conductor</option>
+              <option value="2">Si, como pasajero</option>
+              <option value="3">Si, como peatón</option>
+              <option value="4">No</option>
+            </select>
+
+            <label for="Cantidad_medicamentos">
+              ¿Cuántos medicamentos toma habitualmente?
+            </label>
+            <input type="number" id="Cantidad_medicamentos" name="Cantidad_medicamentos" min="0" />
+
+            <!-- Campo oculto: se completa automáticamente según Cantidad_medicamentos -->
+            <input type="hidden" id="Polifarmacia" name="Polifarmacia" />
+          </fieldset>
+
+          <!-- =================== Prevención =================== -->
+          <fieldset>
+            <legend>Prevención</legend>
+
+            <label for="Vacunacion_dobleBacteriana">
+              ¿Recibió alguna dosis de vacuna doble bacteriana (contra difteria y tétanos) en los últimos 10 años?
+            </label>
+            <select id="Vacunacion_dobleBacteriana" name="Vacunacion_dobleBacteriana">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+            </select>
+
+            <label for="Vacunacion_antigripal">
+              ¿Recibió la vacuna antigripal en la última campaña anual (últimos 12 meses)?
+            </label>
+            <select id="Vacunacion_antigripal" name="Vacunacion_antigripal">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No sabe</option>
+              <option value="4">No corresponde</option>
+            </select>
+
+            <label for="Vacunacion_neumococo">
+              ¿Recibió alguna vacuna contra el neumococo (Prevenar 13, Pneumovax 23 o esquema nuevo con conjugada 20)?
+            </label>
+            <select id="Vacunacion_neumococo" name="Vacunacion_neumococo">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí, 1 dosis</option>
+              <option value="2">Sí, 2 dosis</option>
+              <option value="3">Sí, dosis única nuevo esquema</option>
+              <option value="4">No</option>
+              <option value="5">No Sabe</option>
+              <option value="6">No corresponde</option>
+            </select>
+
+            <label for="Mamografia">
+              ¿Se realizó una mamografía en los últimos 2 años?
+            </label>
+            <select id="Mamografia" name="Mamografia">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No corresponde</option>
+            </select>
+
+            <label for="Papanicolau">
+              ¿Se realizó un PAP en los últimos 3 años?
+            </label>
+            <select id="Papanicolau" name="Papanicolau">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No corresponde</option>
+            </select>
+
+            <label for="Cribado_colorrectal">
+              ¿Se realizó algún estudio de detección de cáncer colorrectal (FOBT, colonoscopía)?
+            </label>
+            <select id="Cribado_colorrectal" name="Cribado_colorrectal">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+              <option value="3">No corresponde</option>
+            </select>
+          </fieldset>
+
+          <button type="submit" id="botonEnviar">Enviar</button>
+          <button type="button" id="nuevoRegistro" style="display:none;">Nuevo registro</button>
+        </form>
+
+        <div id="resultado" class="resultado"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="container">
+    <small>
+      <a href="#">Política de privacidad</a> •
+      <a href="#">Términos de uso</a>
+    </small>
+  </footer>
+
+  <!-- Lógica del formulario -->
+  <script src="js/formulario.js" defer></script>
+</body>
+</html>
