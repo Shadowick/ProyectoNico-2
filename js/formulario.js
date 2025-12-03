@@ -32,6 +32,79 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectDiagnosticoHTA = document.getElementById("Diagnostico_HTA");
   const bloqueHTAExtra = document.getElementById("bloque_hta_extra");
 
+  function marcarCamposPendientes(form) {
+    // Quitar marcas previas
+    form.querySelectorAll(".campo-pendiente").forEach((el) => {
+      el.classList.remove("campo-pendiente");
+    });
+
+    const pendientes = [];
+
+    // Seleccionamos inputs y selects relevantes
+    const elementos = form.querySelectorAll("input, select, textarea");
+
+    elementos.forEach((el) => {
+      const tipo = el.type;
+
+      // Excluir cosas que NO son preguntas "contestables"
+      if (
+        tipo === "hidden" ||
+        tipo === "button" ||
+        tipo === "submit" ||
+        tipo === "checkbox" ||   // los checkboxes los manejamos por lógica propia
+        tipo === "radio"
+      ) {
+        return;
+      }
+
+      if (el.readOnly || el.disabled) return;          // Ej: IMC
+      if (el.offsetParent === null) return;            // No visibles (bloques ocultos)
+
+      const val = (el.value || "").trim();
+
+      if (val === "") {
+        el.classList.add("campo-pendiente");
+        pendientes.push(el);
+      }
+    });
+
+    return pendientes;
+  }
+ 
+  // Quitar la marca roja en cuanto el usuario complete el campo
+    if (form) {
+      const elementosInteractivos = form.querySelectorAll("input, select, textarea");
+
+      elementosInteractivos.forEach((el) => {
+        const tipo = el.type;
+
+        // Igual que antes: excluimos lo que no es "contestable"
+        if (
+          tipo === "hidden" ||
+          tipo === "button" ||
+          tipo === "submit" ||
+          tipo === "checkbox" ||   // los checkboxes van por otra lógica
+          tipo === "radio"
+        ) {
+          return;
+        }
+
+        if (el.readOnly || el.disabled) return;
+
+        const limpiarPendiente = () => {
+          const val = (el.value || "").trim();
+
+          // Si ahora tiene algún valor, le sacamos el rojo
+          if (val !== "") {
+            el.classList.remove("campo-pendiente");
+          }
+        };
+
+        el.addEventListener("input", limpiarPendiente);
+        el.addEventListener("change", limpiarPendiente);
+      });
+    }
+
   // ==================== Conductas: Alcohol ====================
   function actualizarVisibilidadAlcohol() {
     const valor = valueOf("Frecuencia_alcohol");
@@ -245,6 +318,23 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Por favor, revise la edad ingresada.");
           $("Edad")?.focus();
           return;
+        }
+      }
+
+      // 🔍 Marcar campos pendientes y preguntar si desea continuar
+      const pendientes = marcarCamposPendientes(form);
+
+      if (pendientes.length > 0) {
+        const continuar = window.confirm(
+          "Todavía quedan preguntas sin contestar, ¿seguro que desea continuar?"
+        );
+
+        if (!continuar) {
+          // Llevar al usuario al primer campo pendiente
+          const primero = pendientes[0];
+          primero.scrollIntoView({ behavior: "smooth", block: "center" });
+          primero.focus();
+          return; // NO se envía el formulario, sigue completando
         }
       }
 

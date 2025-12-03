@@ -35,3 +35,9 @@
 .porcentaje-wrapper input[type="number"] {
   max-width: 6rem;
 }
+
+/* Campos con respuesta pendiente (solo indicación visual) */
+.campo-pendiente {
+  outline: 2px solid #e63946;
+  outline-offset: 2px;
+}
