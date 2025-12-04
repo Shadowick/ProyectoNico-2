@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const selectDiagnosticoHTA = document.getElementById("Diagnostico_HTA");
   const bloqueHTAExtra = document.getElementById("bloque_hta_extra");
+  const selectTratamientoHTA = document.getElementById("Tratamiento_HTA");
+  const bloqueAdherenciaHTA = document.getElementById("bloque_adherencia_HTA");
 
   function marcarCamposPendientes(form) {
     // Quitar marcas previas
@@ -262,6 +264,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   actualizarVisibilidadHTA();
   actualizarVisibilidadTipoTratamientoHTA();
+  
+  function actualizarVisibilidadAdherenciaHTA() {
+    const valor = (selectTratamientoHTA?.value || "").trim();
+
+    if (valor === "1") {
+      // Sí recibe tratamiento → mostrar
+      bloqueAdherenciaHTA.style.display = "block";
+    } else {
+      // No recibe → ocultar y resetear
+      bloqueAdherenciaHTA.style.display = "none";
+      document.getElementById("Adherencia_tratamiento_HTA").value = "";
+    }
+  }
+
+  selectTratamientoHTA.addEventListener("change", actualizarVisibilidadAdherenciaHTA);
+  actualizarVisibilidadAdherenciaHTA(); // Estado inicial
+
   // ==================== IMC ====================
   function actualizarIMC() {
     const peso = parseFloat(valueOf("Peso"));
