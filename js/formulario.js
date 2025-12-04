@@ -34,6 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectTratamientoHTA = document.getElementById("Tratamiento_HTA");
   const bloqueAdherenciaHTA = document.getElementById("bloque_adherencia_HTA");
 
+  // Modal de confirmación
+  const confirmModal = $("confirmModal");
+  const confirmModalMensaje = $("confirmModalMensaje");
+  const btnConfirmarEnvio = $("btnConfirmarEnvio");
+  const btnCancelarEnvio = $("btnCancelarEnvio");
+
   function marcarCamposPendientes(form) {
     // Quitar marcas previas
     form.querySelectorAll(".campo-pendiente").forEach((el) => {
@@ -74,8 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
  
   // Quitar la marca roja en cuanto el usuario complete el campo
-    if (form) {
-      const elementosInteractivos = form.querySelectorAll("input, select, textarea");
+  if (form) {
+    const elementosInteractivos = form.querySelectorAll("input, select, textarea");
 
       elementosInteractivos.forEach((el) => {
         const tipo = el.type;
@@ -311,9 +317,68 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ==================== Modal de confirmación ====================
+  function cerrarModalConfirmacion() {
+    if (confirmModal) {
+      confirmModal.classList.remove("visible");
+      confirmModal.setAttribute("aria-hidden", "true");
+    }
+    document.body.style.overflow = "";
+  }
+
+  function abrirModalConfirmacion(mensaje) {
+    return new Promise((resolve) => {
+      if (!confirmModal || !btnConfirmarEnvio || !btnCancelarEnvio) {
+        const fallback = window.confirm(mensaje);
+        resolve(fallback);
+        return;
+      }
+
+      if (confirmModalMensaje) confirmModalMensaje.textContent = mensaje;
+      confirmModal.classList.add("visible");
+      confirmModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+
+      const handleConfirm = () => {
+        limpiar();
+        resolve(true);
+      };
+
+      const handleCancel = () => {
+        limpiar();
+        resolve(false);
+      };
+
+      const handleBackdrop = (evt) => {
+        if (evt.target === confirmModal) {
+          handleCancel();
+        }
+      };
+
+      const handleEscape = (evt) => {
+        if (evt.key === "Escape") {
+          handleCancel();
+        }
+      };
+
+      const limpiar = () => {
+        btnConfirmarEnvio.removeEventListener("click", handleConfirm);
+        btnCancelarEnvio.removeEventListener("click", handleCancel);
+        confirmModal.removeEventListener("click", handleBackdrop);
+        document.removeEventListener("keydown", handleEscape);
+        cerrarModalConfirmacion();
+      };
+
+      btnConfirmarEnvio.addEventListener("click", handleConfirm);
+      btnCancelarEnvio.addEventListener("click", handleCancel);
+      confirmModal.addEventListener("click", handleBackdrop);
+      document.addEventListener("keydown", handleEscape);
+    });
+  }
+
   // ==================== Submit del formulario ====================
   if (form) {
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       // ---- Validación edad inicio tabaco (máx. 2 dígitos) ----
@@ -343,18 +408,20 @@ document.addEventListener("DOMContentLoaded", () => {
       // 🔍 Marcar campos pendientes y preguntar si desea continuar
       const pendientes = marcarCamposPendientes(form);
 
-      if (pendientes.length > 0) {
-        const continuar = window.confirm(
-          "Todavía quedan preguntas sin contestar, ¿seguro que desea continuar?"
-        );
+      const mensajeConfirmacion =
+        pendientes.length > 0
+          ? "Todavía quedan preguntas sin contestar, ¿seguro que desea continuar?"
+          : "¿Desea enviar el formulario con los datos cargados?";
 
-        if (!continuar) {
-          // Llevar al usuario al primer campo pendiente
+      const continuar = await abrirModalConfirmacion(mensajeConfirmacion);
+
+      if (!continuar) {
+        if (pendientes.length > 0) {
           const primero = pendientes[0];
           primero.scrollIntoView({ behavior: "smooth", block: "center" });
           primero.focus();
-          return; // NO se envía el formulario, sigue completando
         }
+        return; // NO se envía el formulario
       }
 
       // Aseguramos que el IMC esté actualizado antes de enviar
