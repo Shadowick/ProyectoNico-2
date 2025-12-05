@@ -80,3 +80,27 @@
   justify-content: flex-end;
   gap: 0.75rem;
 }
+
+/* ==== NARRATIVO CLÍNICO ==== */
+
+.narrativo-wrapper {
+  margin-top: 1.5rem;
+}
+
+.narrativo-wrapper label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+#narrativo {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  white-space: pre-wrap; /* para respetar saltos de línea */
+  font-family: inherit;
+}
+
+#btnCopiarNarrativo {
+  margin-top: 0.5rem;
+}

@@ -371,45 +371,45 @@
                 <option value="3">No sabe</option>
               </select>
 
-            <div id="bloque_tipo_tratamiento_hta" style="display:none;">
+              <div id="bloque_tipo_tratamiento_hta" style="display:none;">
                 <label>
-                    ¿Qué tipo de tratamiento utiliza para la hipertensión? (puede seleccionar más de una opción)
+                  ¿Qué tipo de tratamiento utiliza para la hipertensión? (puede seleccionar más de una opción)
                 </label>
-                    <div class="checkbox-group" id="Tipo_tratamiento_hta_group">
-                        <label>
-                        <input type="checkbox" id="Tto_hta_IECA" name="Tto_hta_IECA" value="1">
-                        IECA
-                        </label>
-                        <label>
-                        <input type="checkbox" id="Tto_hta_ARAII" name="Tto_hta_ARAII" value="1">
-                        ARA II
-                        </label>
-                        <label>
-                        <input type="checkbox" id="Tto_hta_BB" name="Tto_hta_BB" value="1">
-                        Betabloqueantes
-                        </label>
-                        <label>
-                        <input type="checkbox" id="Tto_hta_diureticos" name="Tto_hta_diureticos" value="1">
-                        Diuréticos
-                        </label>
-                        <label>
-                        <input type="checkbox" id="Tto_hta_otros" name="Tto_hta_otros" value="1">
-                        Otros
-                        </label>
-                    </div>
-            </div>
+                <div class="checkbox-group" id="Tipo_tratamiento_hta_group">
+                  <label>
+                    <input type="checkbox" id="Tto_hta_IECA" name="Tto_hta_IECA" value="1">
+                    IECA
+                  </label>
+                  <label>
+                    <input type="checkbox" id="Tto_hta_ARAII" name="Tto_hta_ARAII" value="1">
+                    ARA II
+                  </label>
+                  <label>
+                    <input type="checkbox" id="Tto_hta_BB" name="Tto_hta_BB" value="1">
+                    Betabloqueantes
+                  </label>
+                  <label>
+                    <input type="checkbox" id="Tto_hta_diureticos" name="Tto_hta_diureticos" value="1">
+                    Diuréticos
+                  </label>
+                  <label>
+                    <input type="checkbox" id="Tto_hta_otros" name="Tto_hta_otros" value="1">
+                    Otros
+                  </label>
+                </div>
+              </div>
 
-                <div id="bloque_adherencia_HTA">
+              <div id="bloque_adherencia_HTA">
                 <label for="Adherencia_tratamiento_HTA">
-                    Toma la medicación según lo indicado por su médico
+                  Toma la medicación según lo indicado por su médico
                 </label>
                 <select id="Adherencia_tratamiento_HTA" name="Adherencia_tratamiento_HTA">
-                    <option value="" disabled selected hidden>-- Seleccione --</option>
-                    <option value="1">Sí</option>
-                    <option value="2">No</option>
-                    <option value="3">No sabe</option>
+                  <option value="" disabled selected hidden>-- Seleccione --</option>
+                  <option value="1">Sí</option>
+                  <option value="2">No</option>
+                  <option value="3">No sabe</option>
                 </select>
-                </div>
+              </div>
             </div>
 
             <div class="grid">
@@ -599,27 +599,40 @@
         </form>
 
         <div id="resultado" class="resultado"></div>
+
+        <!-- ==== Narrativo clínico generado ==== -->
+        <div class="narrativo-wrapper">
+          <label for="narrativo">Narrativo clínico generado</label>
+          <textarea
+            id="narrativo"
+            placeholder="Aquí se generará automáticamente el narrativo clínico a partir de las respuestas del formulario."
+          ></textarea>
+          <button type="button" id="btnCopiarNarrativo" class="secondary">
+            Copiar narrativo
+          </button>
+        </div>
+
       </section>
     </div>
   </main>
 
-    <!-- Modal de confirmación de envío -->
-    <div id="confirmModal" class="modal-backdrop" aria-hidden="true">
-        <div class="modal-card">
-        <h3>Confirmar envío</h3>
-        <p>
-            ¿Desea enviar el formulario con los datos cargados?
-        </p>
-        <div class="modal-actions">
-            <button type="button" id="btnCancelarEnvio" class="secondary">
-            Cancelar
-            </button>
-            <button type="button" id="btnConfirmarEnvio">
-            Confirmar envío
-            </button>
-        </div>
-        </div>
+  <!-- Modal de confirmación de envío -->
+  <div id="confirmModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card">
+      <h3>Confirmar envío</h3>
+      <p>
+        ¿Desea enviar el formulario con los datos cargados?
+      </p>
+      <div class="modal-actions">
+        <button type="button" id="btnCancelarEnvio" class="secondary">
+          Cancelar
+        </button>
+        <button type="button" id="btnConfirmarEnvio">
+          Confirmar envío
+        </button>
+      </div>
     </div>
+  </div>
 
   <footer class="container">
     <small>
