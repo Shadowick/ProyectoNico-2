@@ -699,7 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
       p3Partes.push("Niega diagnóstico previo de hipertensión arterial.");
     }
 
-    // TA e IMC
+        // TA e IMC (con interpretación de rangos de IMC)
     if (
       (data.TA_sistolica && data.TA_sistolica !== "null") ||
       (data.TA_diastolica && data.TA_diastolica !== "null") ||
@@ -709,21 +709,65 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       let bio = "En el examen actual se registra: ";
       const datos = [];
-      if (data.TA_sistolica && data.TA_sistolica !== "null" &&
-          data.TA_diastolica && data.TA_diastolica !== "null") {
+
+      if (
+        data.TA_sistolica && data.TA_sistolica !== "null" &&
+        data.TA_diastolica && data.TA_diastolica !== "null"
+      ) {
         datos.push(`presión arterial ${data.TA_sistolica}/${data.TA_diastolica} mmHg`);
       }
+
       if (data.Peso && data.Peso !== "null") {
         datos.push(`peso ${data.Peso} kg`);
       }
+
       if (data.Talla && data.Talla !== "null") {
         datos.push(`talla ${data.Talla} cm`);
       }
-      if (data.IMC && data.IMC !== "null") {
-        datos.push(`IMC ${data.IMC}`);
+
+      const tieneIMC = data.IMC && data.IMC !== "null";
+      const imcNum = tieneIMC ? parseFloat(data.IMC) : NaN;
+
+      // Si tenemos IMC numérico, usamos los rangos y frases especiales
+      if (tieneIMC && !isNaN(imcNum)) {
+        // Armamos la parte común (TA/peso/talla)
+        if (datos.length > 0) {
+          bio += datos.join(", ");
+          bio += `, IMC ${data.IMC}, `;
+        } else {
+          bio += `IMC ${data.IMC}, `;
+        }
+
+        let fraseIMC = "";
+
+        if (imcNum < 18.5) {
+          fraseIMC = "correspondiente a bajo peso.";
+        } else if (imcNum >= 18.5 && imcNum < 25) {
+          fraseIMC = "valor que se encuentra dentro del rango de peso normal.";
+        } else if (imcNum >= 25 && imcNum < 30) {
+          fraseIMC = "compatible con sobrepeso.";
+        } else if (imcNum >= 30 && imcNum <= 40) {
+          fraseIMC = "correspondiente a obesidad.";
+        } else if (imcNum > 40) {
+          fraseIMC = "hallazgo compatible con obesidad grave.";
+        } else {
+          // fallback raro, por si algo sale extraño
+          fraseIMC = "sin interpretación disponible.";
+        }
+
+        bio += fraseIMC;
+        p3Partes.push(bio);
+      } else {
+        // Si no tenemos IMC bien formado, narramos sólo lo disponible
+        if (tieneIMC) {
+          datos.push(`IMC ${data.IMC}`);
+        }
+
+        if (datos.length > 0) {
+          bio += datos.join(", ") + ".";
+          p3Partes.push(bio);
+        }
       }
-      bio += datos.join(", ") + ".";
-      p3Partes.push(bio);
     }
 
     const p3 = p3Partes.length > 0
