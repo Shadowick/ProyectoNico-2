@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const valor = valueOf("Frecuencia_alcohol");
 
     // Ocultar si NO eligió nada o eligió "Nunca" (1)
-    if (valor === "" || valor === "1") {
+    if (valor === "" || valor === "0") {
       if (bloqueAlcoholExtra) bloqueAlcoholExtra.style.display = "none";
       if ($("Cantidad_alcohol")) $("Cantidad_alcohol").value = "";
       if ($("Exceso_ocasion")) $("Exceso_ocasion").value = "";
@@ -313,6 +313,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+    // ==================== AUDIT-C: cálculo de puntaje ====================
+  function calcularAuditCDesdeValores(freq, cant, binge) {
+    // Si no respondió nada → no calculamos
+    if (freq === "") return null;
+
+    // Si responde "Nunca" (0) → score total = 0 aunque no vea las otras
+    if (freq === "0") {
+      return 0;
+    }
+
+    // Para puntuar necesitamos las tres respuestas
+    if (cant === "" || binge === "") return null;
+
+    const f = Number(freq);
+    const c = Number(cant);
+    const b = Number(binge);
+
+    if (Number.isNaN(f) || Number.isNaN(c) || Number.isNaN(b)) return null;
+
+    return f + c + b; // 0–12
+  }
+
   // ==================== FUNCIÓN: Narrativo clínico ====================
 
   function generarNarrativo(data) {
@@ -357,28 +379,28 @@ document.addEventListener("DOMContentLoaded", () => {
       "3": "sin trabajo y sin búsqueda activa"
     };
 
-    const frecuenciaAlcoholMap = {
-      "1": "nunca",
-      "2": "1 vez al mes o menos",
-      "3": "2 a 4 veces al mes",
-      "4": "2 a 3 veces por semana",
-      "5": "4 o más veces por semana"
+        const frecuenciaAlcoholMap = {
+      "0": "nunca",
+      "1": "1 vez al mes o menos",
+      "2": "2 a 4 veces al mes",
+      "3": "2 a 3 veces por semana",
+      "4": "4 o más veces por semana"
     };
 
     const cantidadAlcoholMap = {
-      "1": "1 a 2 bebidas",
-      "2": "3 a 4 bebidas",
-      "3": "5 a 6 bebidas",
-      "4": "7 a 9 bebidas",
-      "5": "10 o más bebidas"
+      "0": "1 o 2 bebidas",
+      "1": "3 o 4 bebidas",
+      "2": "5 a 6 bebidas",
+      "3": "7 a 9 bebidas",
+      "4": "10 o más bebidas"
     };
 
     const excesoOcasionalMap = {
-      "1": "nunca",
-      "2": "menos de una vez al mes",
-      "3": "mensualmente",
-      "4": "semanalmente",
-      "5": "a diario o casi a diario"
+      "0": "nunca",
+      "1": "menos de una vez al mes",
+      "2": "mensualmente",
+      "3": "semanalmente",
+      "4": "a diario o casi a diario"
     };
 
     const actividad150Map = {
@@ -571,10 +593,12 @@ document.addEventListener("DOMContentLoaded", () => {
       p2Partes.push("Niega consumo actual de tabaco.");
     }
 
-    // Alcohol
+        // Alcohol
     if (data.Frecuencia_alcohol && data.Frecuencia_alcohol !== "null") {
-      if (data.Frecuencia_alcohol === "1") {
+      if (data.Frecuencia_alcohol === "0") {
+        // Nunca bebe
         p2Partes.push("Refiere no consumir habitualmente bebidas alcohólicas.");
+        p2Partes.push("En cuanto al consumo de alcohol, no se identifican patrones de consumo de riesgo.");
       } else {
         const freqTxt = mapOrNull(data.Frecuencia_alcohol, frecuenciaAlcoholMap);
         const cantTxt = mapOrNull(data.Cantidad_alcohol, cantidadAlcoholMap);
@@ -585,6 +609,26 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cantTxt) alcohol += `, habitualmente ${cantTxt} en un día típico de consumo`;
         if (excesoTxt) alcohol += ` y episodios de consumo excesivo (≥6 bebidas) ${excesoTxt}`;
         alcohol += ".";
+
+        // Cálculo e interpretación del AUDIT-C
+        const auditScore = calcularAuditCDesdeValores(
+          data.Frecuencia_alcohol,
+          data.Cantidad_alcohol,
+          data.Exceso_ocasion
+        );
+
+        if (auditScore !== null) {
+          const sexo = data.Sexo_registrado;
+          // Varón: corte ≥4. Mujeres, NB y no especificado: corte ≥3
+          const corte = (sexo === "1") ? 4 : 3;
+
+          if (auditScore >= corte) {
+            alcohol += " En cuanto al consumo de alcohol, el paciente sugiere patrón de consumo de riesgo.";
+          } else {
+            alcohol += " En cuanto al consumo de alcohol, no se identifican patrones de consumo de riesgo.";
+          }
+        }
+
         p2Partes.push(alcohol);
       }
     }
@@ -1114,6 +1158,13 @@ document.addEventListener("DOMContentLoaded", () => {
         polifInput.value = polifarmaciaValor; // por si querés inspeccionar desde el DOM
       }
 
+            // ---- Calcular AUDIT-C (audit-c) ----
+      const freqAlc = valueOf("Frecuencia_alcohol");
+      const cantAlc = valueOf("Cantidad_alcohol");
+      const excesoAlc = valueOf("Exceso_ocasion");
+
+      const auditScore = calcularAuditCDesdeValores(freqAlc, cantAlc, excesoAlc);
+
       // ---- Armar el objeto de datos para enviar ----
       const data = {
         // Identificación
@@ -1143,6 +1194,9 @@ document.addEventListener("DOMContentLoaded", () => {
         Frecuencia_alcohol: valueOf("Frecuencia_alcohol"),
         Cantidad_alcohol: valueOf("Cantidad_alcohol"),
         Exceso_ocasion: valueOf("Exceso_ocasion"),
+
+        // Puntaje AUDIT-C
+        "audit-c": auditScore !== null ? String(auditScore) : "",
 
         // Conductas: Actividad física
         Actividad150min: valueOf("Actividad150min"),
@@ -1223,7 +1277,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Envío al Apps Script (mismo endpoint que antes)
       fetch(
-        "https://script.google.com/macros/s/AKfycbweYu7ufTNBY8VXoeLMnGEdkoIECAfwFloMPjhBd4mFb3rv3fPlmXnlE-hardbCtU1nAg/exec",
+        "https://script.google.com/macros/s/AKfycbyrYb3-2c9UGoIAGPi_OMmGYKdO4wR2aloWdpGPckniYPEAbsdyQZeu9fdIWi7DJ16nVw/exec",
         {
           method: "POST",
           mode: "no-cors",
