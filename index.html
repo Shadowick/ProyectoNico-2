@@ -192,11 +192,11 @@
             </label>
             <select id="Frecuencia_alcohol" name="Frecuencia_alcohol">
               <option value="" disabled selected hidden>-- Seleccione --</option>
-              <option value="0">Nunca</option>
-              <option value="1">1 vez al mes o menos</option>
-              <option value="2">2 a 4 veces al mes</option>
-              <option value="3">2 a 3 veces por semana</option>
-              <option value="4">4 o más veces por semana</option>
+              <option value="1">Nunca</option>
+              <option value="2">1 vez al mes o menos</option>
+              <option value="3">2 a 4 veces al mes</option>
+              <option value="4">2 a 3 veces por semana</option>
+              <option value="5">4 o más veces por semana</option>
             </select>
 
             <div id="bloque_alcohol_extra">
@@ -205,11 +205,11 @@
               </label>
               <select id="Cantidad_alcohol" name="Cantidad_alcohol">
                 <option value="" disabled selected hidden>-- Seleccione --</option>
-                <option value="0">1 o 2</option>
-                <option value="1">3 o 4</option>
-                <option value="2">5 o 6</option>
-                <option value="3">7 a 9</option>
-                <option value="4">10 o más</option>
+                <option value="1">1 o 2</option>
+                <option value="2">3 o 4</option>
+                <option value="3">5 o 6</option>
+                <option value="4">7 a 9</option>
+                <option value="5">10 o más</option>
               </select>
 
               <label for="Exceso_ocasion">
@@ -217,11 +217,11 @@
               </label>
               <select id="Exceso_ocasion" name="Exceso_ocasion">
                 <option value="" disabled selected hidden>-- Seleccione --</option>
-                <option value="0">Nunca</option>
-                <option value="1">Menos de una vez al mes</option>
-                <option value="2">Mensualmente</option>
-                <option value="3">Semanalmente</option>
-                <option value="4">A diario o casi a diario</option>
+                <option value="1">Nunca</option>
+                <option value="2">Menos de una vez al mes</option>
+                <option value="3">Mensualmente</option>
+                <option value="4">Semanalmente</option>
+                <option value="5">A diario o casi a diario</option>
               </select>
             </div>
           </fieldset>
@@ -289,7 +289,7 @@
                 </label>
                 <label>
                   <input type="checkbox" id="Tto_diab_ADO" name="Tto_diab_ADO" value="1">
-                  Antidiabético oral (ADO)
+                  ADO
                 </label>
                 <label>
                   <input type="checkbox" id="Tto_diab_insulina" name="Tto_diab_insulina" value="1">
@@ -399,7 +399,7 @@
                 </div>
               </div>
 
-              <div id="bloque_adherencia_HTA" style="display:none;">
+              <div id="bloque_adherencia_HTA">
                 <label for="Adherencia_tratamiento_HTA">
                   Toma la medicación según lo indicado por su médico
                 </label>
@@ -409,8 +409,47 @@
                   <option value="2">No</option>
                   <option value="3">No sabe</option>
                 </select>
+              </div>
             </div>
-            </
+
+            <div class="grid">
+              <div>
+                <label for="TA_sistolica">TA sistólica (mmHg)</label>
+                <input
+                  type="number"
+                  id="TA_sistolica"
+                  name="TA_sistolica"
+                  min="0"
+                  max="999"
+                />
+              </div>
+
+              <div>
+                <label for="TA_diastolica">TA diastólica (mmHg)</label>
+                <input
+                  type="number"
+                  id="TA_diastolica"
+                  name="TA_diastolica"
+                  min="0"
+                  max="999"
+                />
+              </div>
+            </div>
+
+            <label for="Peso">
+              Peso del paciente (medido en kg)
+            </label>
+            <input type="number" id="Peso" name="Peso" min="0" step="0.01" />
+
+            <label for="Talla">
+              Talla del paciente (medida en cm)
+            </label>
+            <input type="number" id="Talla" name="Talla" step="0.1" />
+
+            <label for="IMC">
+              Índice de masa corporal (IMC = peso(kg) / altura(m²))
+            </label>
+            <input type="number" id="IMC" name="IMC" step="0.01" readonly />
           </fieldset>
 
           <!-- =================== Salud mental =================== -->
@@ -422,10 +461,10 @@
             </label>
             <select id="PHQ2_item1" name="PHQ2_item1">
               <option value="" disabled selected hidden>-- Seleccione --</option>
-              <option value="0">Nunca</option>
-              <option value="1">Varios días</option>
-              <option value="2">Más de la mitad de los días</option>
-              <option value="3">Casi todos los días</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
             </select>
 
             <label for="PHQ2_item2">
@@ -433,10 +472,10 @@
             </label>
             <select id="PHQ2_item2" name="PHQ2_item2">
               <option value="" disabled selected hidden>-- Seleccione --</option>
-              <option value="0">Nunca</option>
-              <option value="1">Varios días</option>
-              <option value="2">Más de la mitad de los días</option>
-              <option value="3">Casi todos los días</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
             </select>
 
             <label for="GAD2_item1">
@@ -444,10 +483,10 @@
             </label>
             <select id="GAD2_item1" name="GAD2_item1">
               <option value="" disabled selected hidden>-- Seleccione --</option>
-              <option value="0">Nunca</option>
-              <option value="1">Varios días</option>
-              <option value="2">Más de la mitad de los días</option>
-              <option value="3">Casi todos los días</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
             </select>
 
             <label for="GAD2_item2">
@@ -455,10 +494,10 @@
             </label>
             <select id="GAD2_item2" name="GAD2_item2">
               <option value="" disabled selected hidden>-- Seleccione --</option>
-              <option value="0">Nunca</option>
-              <option value="1">Varios días</option>
-              <option value="2">Más de la mitad de los días</option>
-              <option value="3">Casi todos los días</option>
+              <option value="1">Nunca</option>
+              <option value="2">Varios días</option>
+              <option value="3">Más de la mitad de los días</option>
+              <option value="4">Casi todos los días</option>
             </select>
           </fieldset>
 
@@ -545,7 +584,7 @@
             </select>
 
             <label for="Cribado_colorrectal">
-              ¿Se realizó algún estudio de detección de cáncer colorrectal (SOMF, colonoscopía)?
+              ¿Se realizó algún estudio de detección de cáncer colorrectal (FOBT, colonoscopía)?
             </label>
             <select id="Cribado_colorrectal" name="Cribado_colorrectal">
               <option value="" disabled selected hidden>-- Seleccione --</option>

@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const valor = valueOf("Frecuencia_alcohol");
 
     // Ocultar si NO eligió nada o eligió "Nunca" (1)
-    if (valor === "" || valor === "0") {
+    if (valor === "" || valor === "1") {
       if (bloqueAlcoholExtra) bloqueAlcoholExtra.style.display = "none";
       if ($("Cantidad_alcohol")) $("Cantidad_alcohol").value = "";
       if ($("Exceso_ocasion")) $("Exceso_ocasion").value = "";
@@ -313,28 +313,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ==================== AUDIT-C: cálculo de puntaje ====================
-  function calcularAuditCDesdeValores(freq, cant, binge) {
-    // Si no respondió nada → no calculamos
-    if (freq === "") return null;
-
-    // Si responde "Nunca" (0) → score total = 0 aunque no vea las otras
-    if (freq === "0") {
-      return 0;
-    }
-
-    // Para puntuar necesitamos las tres respuestas
-    if (cant === "" || binge === "") return null;
-
-    const f = Number(freq);
-    const c = Number(cant);
-    const b = Number(binge);
-
-    if (Number.isNaN(f) || Number.isNaN(c) || Number.isNaN(b)) return null;
-
-    return f + c + b; // 0–12
-  }
-
   // ==================== FUNCIÓN: Narrativo clínico ====================
 
   function generarNarrativo(data) {
@@ -379,28 +357,28 @@ document.addEventListener("DOMContentLoaded", () => {
       "3": "sin trabajo y sin búsqueda activa"
     };
 
-        const frecuenciaAlcoholMap = {
-      "0": "nunca",
-      "1": "1 vez al mes o menos",
-      "2": "2 a 4 veces al mes",
-      "3": "2 a 3 veces por semana",
-      "4": "4 o más veces por semana"
+    const frecuenciaAlcoholMap = {
+      "1": "nunca",
+      "2": "1 vez al mes o menos",
+      "3": "2 a 4 veces al mes",
+      "4": "2 a 3 veces por semana",
+      "5": "4 o más veces por semana"
     };
 
     const cantidadAlcoholMap = {
-      "0": "1 o 2 bebidas",
-      "1": "3 o 4 bebidas",
-      "2": "5 a 6 bebidas",
-      "3": "7 a 9 bebidas",
-      "4": "10 o más bebidas"
+      "1": "1 a 2 bebidas",
+      "2": "3 a 4 bebidas",
+      "3": "5 a 6 bebidas",
+      "4": "7 a 9 bebidas",
+      "5": "10 o más bebidas"
     };
 
     const excesoOcasionalMap = {
-      "0": "nunca",
-      "1": "menos de una vez al mes",
-      "2": "mensualmente",
-      "3": "semanalmente",
-      "4": "a diario o casi a diario"
+      "1": "nunca",
+      "2": "menos de una vez al mes",
+      "3": "mensualmente",
+      "4": "semanalmente",
+      "5": "a diario o casi a diario"
     };
 
     const actividad150Map = {
@@ -418,10 +396,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const phqGadFrecuenciaMap = {
-      "0": "nunca",
-      "1": "en varios días",
-      "2": "en más de la mitad de los días",
-      "3": "casi todos los días"
+      "1": "nunca",
+      "2": "en varios días",
+      "3": "en más de la mitad de los días",
+      "4": "casi todos los días"
     };
 
     const transitoMap = {
@@ -593,12 +571,10 @@ document.addEventListener("DOMContentLoaded", () => {
       p2Partes.push("Niega consumo actual de tabaco.");
     }
 
-        // Alcohol
+    // Alcohol
     if (data.Frecuencia_alcohol && data.Frecuencia_alcohol !== "null") {
-      if (data.Frecuencia_alcohol === "0") {
-        // Nunca bebe
+      if (data.Frecuencia_alcohol === "1") {
         p2Partes.push("Refiere no consumir habitualmente bebidas alcohólicas.");
-        p2Partes.push("En cuanto al consumo de alcohol, no se identifican patrones de consumo de riesgo.");
       } else {
         const freqTxt = mapOrNull(data.Frecuencia_alcohol, frecuenciaAlcoholMap);
         const cantTxt = mapOrNull(data.Cantidad_alcohol, cantidadAlcoholMap);
@@ -609,26 +585,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cantTxt) alcohol += `, habitualmente ${cantTxt} en un día típico de consumo`;
         if (excesoTxt) alcohol += ` y episodios de consumo excesivo (≥6 bebidas) ${excesoTxt}`;
         alcohol += ".";
-
-        // Cálculo e interpretación del AUDIT-C
-        const auditScore = calcularAuditCDesdeValores(
-          data.Frecuencia_alcohol,
-          data.Cantidad_alcohol,
-          data.Exceso_ocasion
-        );
-
-        if (auditScore !== null) {
-          const sexo = data.Sexo_registrado;
-          // Varón: corte ≥4. Mujeres, NB y no especificado: corte ≥3
-          const corte = (sexo === "1") ? 4 : 3;
-
-          if (auditScore >= corte) {
-            alcohol += " En cuanto al consumo de alcohol, el paciente sugiere patrón de consumo de riesgo.";
-          } else {
-            alcohol += " En cuanto al consumo de alcohol, no se identifican patrones de consumo de riesgo.";
-          }
-        }
-
         p2Partes.push(alcohol);
       }
     }
@@ -743,7 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
       p3Partes.push("Niega diagnóstico previo de hipertensión arterial.");
     }
 
-        // TA e IMC (con interpretación de rangos de IMC)
+    // TA e IMC
     if (
       (data.TA_sistolica && data.TA_sistolica !== "null") ||
       (data.TA_diastolica && data.TA_diastolica !== "null") ||
@@ -753,97 +709,53 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       let bio = "En el examen actual se registra: ";
       const datos = [];
-
-      if (
-        data.TA_sistolica && data.TA_sistolica !== "null" &&
-        data.TA_diastolica && data.TA_diastolica !== "null"
-      ) {
+      if (data.TA_sistolica && data.TA_sistolica !== "null" &&
+          data.TA_diastolica && data.TA_diastolica !== "null") {
         datos.push(`presión arterial ${data.TA_sistolica}/${data.TA_diastolica} mmHg`);
       }
-
       if (data.Peso && data.Peso !== "null") {
         datos.push(`peso ${data.Peso} kg`);
       }
-
       if (data.Talla && data.Talla !== "null") {
         datos.push(`talla ${data.Talla} cm`);
       }
-
-      const tieneIMC = data.IMC && data.IMC !== "null";
-      const imcNum = tieneIMC ? parseFloat(data.IMC) : NaN;
-
-      // Si tenemos IMC numérico, usamos los rangos y frases especiales
-      if (tieneIMC && !isNaN(imcNum)) {
-        // Armamos la parte común (TA/peso/talla)
-        if (datos.length > 0) {
-          bio += datos.join(", ");
-          bio += `, IMC ${data.IMC}, `;
-        } else {
-          bio += `IMC ${data.IMC}, `;
-        }
-
-        let fraseIMC = "";
-
-        if (imcNum < 18.5) {
-          fraseIMC = "correspondiente a bajo peso.";
-        } else if (imcNum >= 18.5 && imcNum < 25) {
-          fraseIMC = "valor que se encuentra dentro del rango de peso normal.";
-        } else if (imcNum >= 25 && imcNum < 30) {
-          fraseIMC = "compatible con sobrepeso.";
-        } else if (imcNum >= 30 && imcNum <= 40) {
-          fraseIMC = "correspondiente a obesidad.";
-        } else if (imcNum > 40) {
-          fraseIMC = "hallazgo compatible con obesidad grave.";
-        } else {
-          // fallback raro, por si algo sale extraño
-          fraseIMC = "sin interpretación disponible.";
-        }
-
-        bio += fraseIMC;
-        p3Partes.push(bio);
-      } else {
-        // Si no tenemos IMC bien formado, narramos sólo lo disponible
-        if (tieneIMC) {
-          datos.push(`IMC ${data.IMC}`);
-        }
-
-        if (datos.length > 0) {
-          bio += datos.join(", ") + ".";
-          p3Partes.push(bio);
-        }
+      if (data.IMC && data.IMC !== "null") {
+        datos.push(`IMC ${data.IMC}`);
       }
+      bio += datos.join(", ") + ".";
+      p3Partes.push(bio);
     }
 
     const p3 = p3Partes.length > 0
       ? "En cuanto a antecedentes biomédicos y parámetros actuales: " + p3Partes.join(" ")
       : "";
 
-        // -------- Salud mental --------
+    // -------- Salud mental --------
     let p4 = "";
-    const phq1Txt = mapOrNull(data.PHQ2_item1, phqGadFrecuenciaMap);
-    const phq2Txt = mapOrNull(data.PHQ2_item2, phqGadFrecuenciaMap);
-    const gad1Txt = mapOrNull(data.GAD2_item1, phqGadFrecuenciaMap);
-    const gad2Txt = mapOrNull(data.GAD2_item2, phqGadFrecuenciaMap);
+    const phq1 = mapOrNull(data.PHQ2_item1, phqGadFrecuenciaMap);
+    const phq2 = mapOrNull(data.PHQ2_item2, phqGadFrecuenciaMap);
+    const gad1 = mapOrNull(data.GAD2_item1, phqGadFrecuenciaMap);
+    const gad2 = mapOrNull(data.GAD2_item2, phqGadFrecuenciaMap);
 
     const partesSM = [];
 
-    // Estado de ánimo (descriptivo, derivado de PHQ-2)
-    if (phq1Txt || phq2Txt) {
+    // Estado de ánimo (derivado de PHQ-2, pero sin nombrarlo)
+    if (phq1 || phq2) {
       let frase = "En la evaluación del estado de ánimo, ";
       const detalles = [];
 
-      if (phq1Txt) {
+      if (phq1) {
         // Ítem: poco interés o placer en hacer las cosas
-        detalles.push(`refiere poco interés o placer en realizar actividades ${phq1Txt}`);
+        detalles.push(`refiere poco interés o placer en realizar actividades ${phq1}`);
       }
 
-      if (phq2Txt) {
+      if (phq2) {
         // Ítem: se ha sentido decaído/deprimido/sin esperanzas
         if (sufGenero) {
-          detalles.push(`refiere sentirse decaíd${sufGenero} o con sensación de falta de esperanza ${phq2Txt}`);
+          detalles.push(`refiere sentirse decaíd${sufGenero} o con sensación de falta de esperanza ${phq2}`);
         } else {
           // Formulación neutra para no binario / no especificado
-          detalles.push(`refiere ánimo bajo o sensación de falta de esperanza ${phq2Txt}`);
+          detalles.push(`refiere ánimo bajo o sensación de falta de esperanza ${phq2}`);
         }
       }
 
@@ -851,76 +763,27 @@ document.addEventListener("DOMContentLoaded", () => {
       partesSM.push(frase);
     }
 
-    // Ansiedad / preocupación (descriptivo, derivado de GAD-2)
-    if (gad1Txt || gad2Txt) {
+    // Ansiedad / preocupación (derivado de GAD-2, pero sin nombrarlo)
+    if (gad1 || gad2) {
       let frase = "En la evaluación de síntomas de ansiedad, ";
       const detalles = [];
 
-      if (gad1Txt) {
+      if (gad1) {
+        // Ítem: se sintió nervioso/ansioso/al límite → sacamos "nervioso/a"
         if (sufGenero) {
-          detalles.push(`refiere sentirse ansios${sufGenero} o al límite ${gad1Txt}`);
+          detalles.push(`refiere sentirse ansios${sufGenero} o al límite ${gad1}`);
         } else {
-          detalles.push(`refiere malestar ansioso o sensación de estar al límite ${gad1Txt}`);
+          detalles.push(`refiere malestar ansioso o sensación de estar al límite ${gad1}`);
         }
       }
 
-      if (gad2Txt) {
-        detalles.push(`refiere dificultad para controlar la preocupación ${gad2Txt}`);
+      if (gad2) {
+        // Ítem: no pudo dejar de preocuparse o controlar la preocupación
+        detalles.push(`refiere dificultad para controlar la preocupación ${gad2}`);
       }
 
       frase += detalles.join(" y ") + ".";
       partesSM.push(frase);
-    }
-
-    // ---- Cálculo de puntajes PHQ-2 y GAD-2 e interpretación ----
-    const parsePhqGadValue = (raw) => {
-      if (!raw || raw === "null") return null;
-      const n = Number(raw);
-      if (Number.isNaN(n)) return null;
-      // Soporta codificación 0–3 o 1–4
-      if (n >= 0 && n <= 3) return n;     // ya está en 0–3
-      if (n >= 1 && n <= 4) return n - 1; // de 1–4 a 0–3
-      return null;
-    };
-
-    // PHQ-2 (depresión): 0–6, corte ≥3
-    let phqScore = null;
-    const phq1Score = parsePhqGadValue(data.PHQ2_item1);
-    const phq2Score = parsePhqGadValue(data.PHQ2_item2);
-    if (phq1Score !== null && phq2Score !== null) {
-      phqScore = phq1Score + phq2Score;
-    }
-
-    if (phqScore !== null) {
-      if (phqScore >= 3) {
-        partesSM.push(
-          "El paciente presenta síntomas depresivos que requieren evaluación complementaria con PHQ-9."
-        );
-      } else {
-        partesSM.push(
-          "No se identifican síntomas depresivos significativos."
-        );
-      }
-    }
-
-    // GAD-2 (ansiedad): 0–6, corte ≥3
-    let gadScore = null;
-    const gad1Score = parsePhqGadValue(data.GAD2_item1);
-    const gad2Score = parsePhqGadValue(data.GAD2_item2);
-    if (gad1Score !== null && gad2Score !== null) {
-      gadScore = gad1Score + gad2Score;
-    }
-
-    if (gadScore !== null) {
-      if (gadScore >= 3) {
-        partesSM.push(
-          "El paciente presenta síntomas de ansiedad."
-        );
-      } else {
-        partesSM.push(
-          "El paciente no presenta síntomas de ansiedad."
-        );
-      }
     }
 
     if (partesSM.length > 0) {
@@ -953,53 +816,37 @@ document.addEventListener("DOMContentLoaded", () => {
       ? "En relación con salud general y tratamiento farmacológico: " + p5Partes.join(" ")
       : "";
 
-        // -------- Prevención y tamizajes --------
+    // -------- Prevención y tamizajes --------
     let p6Partes = [];
 
-    // Doble bacteriana (no tiene "no corresponde")
     const doblBactTxt = mapOrNull(data.Vacunacion_dobleBacteriana, vacunaDobleBactMap);
     if (doblBactTxt) {
       p6Partes.push(`Para vacuna doble bacteriana, refiere ${doblBactTxt}.`);
     }
 
-    // Antigripal: value "4" = "no corresponde" → NO narrar nada
-    if (data.Vacunacion_antigripal && data.Vacunacion_antigripal !== "4") {
-      const antiGripTxt = mapOrNull(data.Vacunacion_antigripal, vacunaAntigripalMap);
-      if (antiGripTxt) {
-        p6Partes.push(`Respecto de la vacuna antigripal, refiere ${antiGripTxt}.`);
-      }
+    const antiGripTxt = mapOrNull(data.Vacunacion_antigripal, vacunaAntigripalMap);
+    if (antiGripTxt) {
+      p6Partes.push(`Respecto de la vacuna antigripal, refiere ${antiGripTxt}.`);
     }
 
-    // Neumococo: value "6" = "no corresponde" → NO narrar
-    if (data.Vacunacion_neumococo && data.Vacunacion_neumococo !== "6") {
-      const neumococoTxt = mapOrNull(data.Vacunacion_neumococo, vacunaNeumococoMap);
-      if (neumococoTxt) {
-        p6Partes.push(`En relación con la vacunación contra neumococo, refiere ${neumococoTxt}.`);
-      }
+    const neumococoTxt = mapOrNull(data.Vacunacion_neumococo, vacunaNeumococoMap);
+    if (neumococoTxt) {
+      p6Partes.push(`En relación con la vacunación contra neumococo, refiere ${neumococoTxt}.`);
     }
 
-    // Mamografía: value "3" = "no corresponde" → NO narrar
-    if (data.Mamografia && data.Mamografia !== "3") {
-      const mamografiaTxt = mapOrNull(data.Mamografia, mamografiaMap);
-      if (mamografiaTxt) {
-        p6Partes.push(`En tamizaje mamográfico, refiere ${mamografiaTxt}.`);
-      }
+    const mamografiaTxt = mapOrNull(data.Mamografia, mamografiaMap);
+    if (mamografiaTxt) {
+      p6Partes.push(`En tamizaje mamográfico, refiere ${mamografiaTxt}.`);
     }
 
-    // PAP: value "3" = "no corresponde" → NO narrar
-    if (data.Papanicolau && data.Papanicolau !== "3") {
-      const papTxt = mapOrNull(data.Papanicolau, papanicolauMap);
-      if (papTxt) {
-        p6Partes.push(`Respecto del Papanicolaou (PAP), refiere ${papTxt}.`);
-      }
+    const papTxt = mapOrNull(data.Papanicolau, papanicolauMap);
+    if (papTxt) {
+      p6Partes.push(`Respecto del Papanicolaou (PAP), refiere ${papTxt}.`);
     }
 
-    // Cribado colorrectal: value "3" = "no corresponde" → NO narrar
-    if (data.Cribado_colorrectal && data.Cribado_colorrectal !== "3") {
-      const colorrectalTxt = mapOrNull(data.Cribado_colorrectal, cribadoColorrectalMap);
-      if (colorrectalTxt) {
-        p6Partes.push(`Para cribado de cáncer colorrectal, refiere ${colorrectalTxt}.`);
-      }
+    const colorrectalTxt = mapOrNull(data.Cribado_colorrectal, cribadoColorrectalMap);
+    if (colorrectalTxt) {
+      p6Partes.push(`Para cribado de cáncer colorrectal, refiere ${colorrectalTxt}.`);
     }
 
     const p6 = p6Partes.length > 0
@@ -1223,43 +1070,6 @@ document.addEventListener("DOMContentLoaded", () => {
         polifInput.value = polifarmaciaValor; // por si querés inspeccionar desde el DOM
       }
 
-            // ---- Calcular AUDIT-C (audit-c) ----
-      const freqAlc = valueOf("Frecuencia_alcohol");
-      const cantAlc = valueOf("Cantidad_alcohol");
-      const excesoAlc = valueOf("Exceso_ocasion");
-
-      const auditScore = calcularAuditCDesdeValores(freqAlc, cantAlc, excesoAlc);
-      
-      // ---- Calcular PHQ-2 ----
-      let phqScore = null;
-
-      const phq1 = valueOf("PHQ2_item1"); // 0–3
-      const phq2 = valueOf("PHQ2_item2"); // 0–3
-
-      if (phq1 !== "" && phq2 !== "" && phq1 !== "null" && phq2 !== "null") {
-        const s1 = Number(phq1);
-        const s2 = Number(phq2);
-
-        if (!Number.isNaN(s1) && !Number.isNaN(s2)) {
-          phqScore = s1 + s2;  // 0–6
-        }
-      }
-      
-      // ---- Calcular GAD-2 ----
-      let gadScore = null;
-
-      const gad1Val = valueOf("GAD2_item1"); // 0–3
-      const gad2Val = valueOf("GAD2_item2"); // 0–3
-
-      if (gad1Val !== "" && gad2Val !== "" && gad1Val !== "null" && gad2Val !== "null") {
-        const g1 = Number(gad1Val);
-        const g2 = Number(gad2Val);
-
-        if (!Number.isNaN(g1) && !Number.isNaN(g2)) {
-          gadScore = g1 + g2;  // 0–6
-        }
-      }
-
       // ---- Armar el objeto de datos para enviar ----
       const data = {
         // Identificación
@@ -1289,9 +1099,6 @@ document.addEventListener("DOMContentLoaded", () => {
         Frecuencia_alcohol: valueOf("Frecuencia_alcohol"),
         Cantidad_alcohol: valueOf("Cantidad_alcohol"),
         Exceso_ocasion: valueOf("Exceso_ocasion"),
-
-        // Puntaje AUDIT-C
-        "audit-c": auditScore !== null ? String(auditScore) : "",
 
         // Conductas: Actividad física
         Actividad150min: valueOf("Actividad150min"),
@@ -1327,10 +1134,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Salud mental
         PHQ2_item1: valueOf("PHQ2_item1"),
         PHQ2_item2: valueOf("PHQ2_item2"),
-        "phq-2": phqScore !== null ? String(phqScore) : "",
         GAD2_item1: valueOf("GAD2_item1"),
         GAD2_item2: valueOf("GAD2_item2"),
-        "gad-2": gadScore !== null ? String(gadScore) : "",
 
         // Salud general
         Transito: valueOf("Transito"),
@@ -1374,7 +1179,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Envío al Apps Script (mismo endpoint que antes)
       fetch(
-        "https://script.google.com/macros/s/AKfycbzs2Cu7rsI6brbFDzlyhgrZbOgVhjPVfOl2qlu5EREHG9SN6X7fDxzR4XYc3sIg4KgT4A/exec",
+        "https://script.google.com/macros/s/AKfycbweYu7ufTNBY8VXoeLMnGEdkoIECAfwFloMPjhBd4mFb3rv3fPlmXnlE-hardbCtU1nAg/exec",
         {
           method: "POST",
           mode: "no-cors",
