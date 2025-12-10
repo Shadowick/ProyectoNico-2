@@ -418,10 +418,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const phqGadFrecuenciaMap = {
-      "1": "nunca",
-      "2": "en varios días",
-      "3": "en más de la mitad de los días",
-      "4": "casi todos los días"
+      "0": "nunca",
+      "1": "en varios días",
+      "2": "en más de la mitad de los días",
+      "3": "casi todos los días"
     };
 
     const transitoMap = {
@@ -818,32 +818,32 @@ document.addEventListener("DOMContentLoaded", () => {
       ? "En cuanto a antecedentes biomédicos y parámetros actuales: " + p3Partes.join(" ")
       : "";
 
-    // -------- Salud mental --------
+        // -------- Salud mental --------
     let p4 = "";
-    const phq1 = mapOrNull(data.PHQ2_item1, phqGadFrecuenciaMap);
-    const phq2 = mapOrNull(data.PHQ2_item2, phqGadFrecuenciaMap);
-    const gad1 = mapOrNull(data.GAD2_item1, phqGadFrecuenciaMap);
-    const gad2 = mapOrNull(data.GAD2_item2, phqGadFrecuenciaMap);
+    const phq1Txt = mapOrNull(data.PHQ2_item1, phqGadFrecuenciaMap);
+    const phq2Txt = mapOrNull(data.PHQ2_item2, phqGadFrecuenciaMap);
+    const gad1Txt = mapOrNull(data.GAD2_item1, phqGadFrecuenciaMap);
+    const gad2Txt = mapOrNull(data.GAD2_item2, phqGadFrecuenciaMap);
 
     const partesSM = [];
 
-    // Estado de ánimo (derivado de PHQ-2, pero sin nombrarlo)
-    if (phq1 || phq2) {
+    // Estado de ánimo (descriptivo, derivado de PHQ-2)
+    if (phq1Txt || phq2Txt) {
       let frase = "En la evaluación del estado de ánimo, ";
       const detalles = [];
 
-      if (phq1) {
+      if (phq1Txt) {
         // Ítem: poco interés o placer en hacer las cosas
-        detalles.push(`refiere poco interés o placer en realizar actividades ${phq1}`);
+        detalles.push(`refiere poco interés o placer en realizar actividades ${phq1Txt}`);
       }
 
-      if (phq2) {
+      if (phq2Txt) {
         // Ítem: se ha sentido decaído/deprimido/sin esperanzas
         if (sufGenero) {
-          detalles.push(`refiere sentirse decaíd${sufGenero} o con sensación de falta de esperanza ${phq2}`);
+          detalles.push(`refiere sentirse decaíd${sufGenero} o con sensación de falta de esperanza ${phq2Txt}`);
         } else {
           // Formulación neutra para no binario / no especificado
-          detalles.push(`refiere ánimo bajo o sensación de falta de esperanza ${phq2}`);
+          detalles.push(`refiere ánimo bajo o sensación de falta de esperanza ${phq2Txt}`);
         }
       }
 
@@ -851,27 +851,76 @@ document.addEventListener("DOMContentLoaded", () => {
       partesSM.push(frase);
     }
 
-    // Ansiedad / preocupación (derivado de GAD-2, pero sin nombrarlo)
-    if (gad1 || gad2) {
+    // Ansiedad / preocupación (descriptivo, derivado de GAD-2)
+    if (gad1Txt || gad2Txt) {
       let frase = "En la evaluación de síntomas de ansiedad, ";
       const detalles = [];
 
-      if (gad1) {
-        // Ítem: se sintió nervioso/ansioso/al límite → sacamos "nervioso/a"
+      if (gad1Txt) {
         if (sufGenero) {
-          detalles.push(`refiere sentirse ansios${sufGenero} o al límite ${gad1}`);
+          detalles.push(`refiere sentirse ansios${sufGenero} o al límite ${gad1Txt}`);
         } else {
-          detalles.push(`refiere malestar ansioso o sensación de estar al límite ${gad1}`);
+          detalles.push(`refiere malestar ansioso o sensación de estar al límite ${gad1Txt}`);
         }
       }
 
-      if (gad2) {
-        // Ítem: no pudo dejar de preocuparse o controlar la preocupación
-        detalles.push(`refiere dificultad para controlar la preocupación ${gad2}`);
+      if (gad2Txt) {
+        detalles.push(`refiere dificultad para controlar la preocupación ${gad2Txt}`);
       }
 
       frase += detalles.join(" y ") + ".";
       partesSM.push(frase);
+    }
+
+    // ---- Cálculo de puntajes PHQ-2 y GAD-2 e interpretación ----
+    const parsePhqGadValue = (raw) => {
+      if (!raw || raw === "null") return null;
+      const n = Number(raw);
+      if (Number.isNaN(n)) return null;
+      // Soporta codificación 0–3 o 1–4
+      if (n >= 0 && n <= 3) return n;     // ya está en 0–3
+      if (n >= 1 && n <= 4) return n - 1; // de 1–4 a 0–3
+      return null;
+    };
+
+    // PHQ-2 (depresión): 0–6, corte ≥3
+    let phqScore = null;
+    const phq1Score = parsePhqGadValue(data.PHQ2_item1);
+    const phq2Score = parsePhqGadValue(data.PHQ2_item2);
+    if (phq1Score !== null && phq2Score !== null) {
+      phqScore = phq1Score + phq2Score;
+    }
+
+    if (phqScore !== null) {
+      if (phqScore >= 3) {
+        partesSM.push(
+          "El paciente presenta síntomas depresivos que requieren evaluación complementaria con PHQ-9."
+        );
+      } else {
+        partesSM.push(
+          "No se identifican síntomas depresivos significativos."
+        );
+      }
+    }
+
+    // GAD-2 (ansiedad): 0–6, corte ≥3
+    let gadScore = null;
+    const gad1Score = parsePhqGadValue(data.GAD2_item1);
+    const gad2Score = parsePhqGadValue(data.GAD2_item2);
+    if (gad1Score !== null && gad2Score !== null) {
+      gadScore = gad1Score + gad2Score;
+    }
+
+    if (gadScore !== null) {
+      if (gadScore >= 3) {
+        partesSM.push(
+          "El paciente presenta síntomas de ansiedad."
+        );
+      } else {
+        partesSM.push(
+          "El paciente no presenta síntomas de ansiedad."
+        );
+      }
     }
 
     if (partesSM.length > 0) {
@@ -1158,13 +1207,43 @@ document.addEventListener("DOMContentLoaded", () => {
         polifInput.value = polifarmaciaValor; // por si querés inspeccionar desde el DOM
       }
 
-            // ---- Calcular AUDIT-C (audit-c) ----
+      // ---- Calcular AUDIT-C (audit-c) ----
       const freqAlc = valueOf("Frecuencia_alcohol");
       const cantAlc = valueOf("Cantidad_alcohol");
       const excesoAlc = valueOf("Exceso_ocasion");
 
       const auditScore = calcularAuditCDesdeValores(freqAlc, cantAlc, excesoAlc);
 
+      // ---- Calcular PHQ-2 ----
+      let phqScore = null;
+
+      const phq1 = valueOf("PHQ2_item1"); // 0–3
+      const phq2 = valueOf("PHQ2_item2"); // 0–3
+
+      if (phq1 !== "" && phq2 !== "" && phq1 !== "null" && phq2 !== "null") {
+        const s1 = Number(phq1);
+        const s2 = Number(phq2);
+
+        if (!Number.isNaN(s1) && !Number.isNaN(s2)) {
+          phqScore = s1 + s2;  // 0–6
+        }
+      }
+
+      // ---- Calcular GAD-2 ----
+      let gadScore = null;
+
+      const gad1Val = valueOf("GAD2_item1"); // 0–3
+      const gad2Val = valueOf("GAD2_item2"); // 0–3
+
+      if (gad1Val !== "" && gad2Val !== "" && gad1Val !== "null" && gad2Val !== "null") {
+        const g1 = Number(gad1Val);
+        const g2 = Number(gad2Val);
+
+        if (!Number.isNaN(g1) && !Number.isNaN(g2)) {
+          gadScore = g1 + g2;  // 0–6
+        }
+      }
+    
       // ---- Armar el objeto de datos para enviar ----
       const data = {
         // Identificación
@@ -1232,8 +1311,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Salud mental
         PHQ2_item1: valueOf("PHQ2_item1"),
         PHQ2_item2: valueOf("PHQ2_item2"),
+        "phq-2": phqScore !== null ? String(phqScore) : "",
         GAD2_item1: valueOf("GAD2_item1"),
         GAD2_item2: valueOf("GAD2_item2"),
+        "gad-2": gadScore !== null ? String(gadScore) : "",
 
         // Salud general
         Transito: valueOf("Transito"),
