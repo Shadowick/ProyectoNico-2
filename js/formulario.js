@@ -1,55 +1,296 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Helper rápido para obtener elementos
+  // Helpers cortos para acceder a elementos/valores
   const $ = (id) => document.getElementById(id);
+  const valueOf = (id) => ($(id)?.value ?? "").trim();
 
+  // Elementos base
   const form = $("formulario");
+  const resultado = $("resultado");
   const botonEnviar = $("botonEnviar");
   const nuevoRegistro = $("nuevoRegistro");
   const fechaConsultaInput = $("Fecha_consulta");
-  const imcInput = $("IMC");
+  const btnHoyFecha = $("btnHoyFecha");
+  const cantMedInput = $("Cantidad_medicamentos");
+  const polifInput = $("Polifarmacia");
+
   const pesoInput = $("Peso");
   const tallaInput = $("Talla");
-  const resultado = $("resultadoIMC");
-  const btnHoyFecha = $("btnHoyFecha");
-  const btnCopiarNarrativo = $("btnCopiarNarrativo");
-
-  const selectFuma = $("Fuma_actualmente");
-  const bloqueTabacoExtra = $("bloque_tabaco_extra");
-
-  const selectFrecuenciaAlcohol = $("Frecuencia_alcohol");
-  const bloqueAlcoholExtra = $("bloque_alcohol_extra");
+  const imcInput = $("IMC");
 
   const selectTratamientoDiabetes = $("Tratamiento_diabetes");
   const bloqueTipoTratamiento = $("bloque_tipo_tratamiento_diabetes");
 
   const selectDiagnosticoDiabetes = $("Diagnostico_diabetes");
-  // ESTE es el div que envuelve la pregunta de tratamiento por diabetes:
-  const bloqueDiabetes = $("bloque_tratamiento_diabetes");
-  // Este ya estaba bien:
+  const bloqueTratamientoDiabetes = $("bloque_tratamiento_diabetes");
   const bloqueHbA1c = $("bloque_hba1c");
 
-  const selectDiagnosticoHTA = $("Diagnostico_HTA");
-  const bloqueHTA = $("bloque_hta_extra");
+  const selectFuma = $("Fuma_actualmente");
+  const bloqueTabacoExtra = $("bloque_tabaco_extra");
+  const selectFrecuenciaAlcohol = $("Frecuencia_alcohol");
+  const bloqueAlcoholExtra = $("bloque_alcohol_extra");
 
-  const selectTratamientoHTA = $("Tratamiento_HTA");
-  const bloqueTipoTratamientoHTA = $("bloque_tipo_tratamiento_hta");
-  const bloqueAdherenciaHTA = $("bloque_adherencia_HTA");
+  const selectDiagnosticoHTA = document.getElementById("Diagnostico_HTA");
+  const bloqueHTAExtra = document.getElementById("bloque_hta_extra");
+  const selectTratamientoHTA = document.getElementById("Tratamiento_HTA");
+  const bloqueAdherenciaHTA = document.getElementById("bloque_adherencia_HTA");
 
-  const selectPHQ1 = $("PHQ2_item1");
-  const selectPHQ2 = $("PHQ2_item2");
-  const bloquePHQ2 = $("bloque_PHQ2");
+  const btnCopiarNarrativo = $("btnCopiarNarrativo");
 
-  const selectGAD1 = $("GAD2_item1");
-  const selectGAD2 = $("GAD2_item2");
-  const bloqueGAD2 = $("bloque_GAD2");
+  function marcarCamposPendientes(form) {
+    // Quitar marcas previas
+    form.querySelectorAll(".campo-pendiente").forEach((el) => {
+      el.classList.remove("campo-pendiente");
+    });
 
-  // ==================== Cálculo de IMC ====================
+    const pendientes = [];
+
+    // Seleccionamos inputs y selects relevantes
+    const elementos = form.querySelectorAll("input, select, textarea");
+
+    elementos.forEach((el) => {
+      const tipo = el.type;
+
+      // Excluir cosas que NO son preguntas "contestables"
+      if (
+        tipo === "hidden" ||
+        tipo === "button" ||
+        tipo === "submit" ||
+        tipo === "checkbox" ||   // los checkboxes los manejamos por lógica propia
+        tipo === "radio"
+      ) {
+        return;
+      }
+
+      if (el.readOnly || el.disabled) return;          // Ej: IMC
+      if (el.offsetParent === null) return;            // No visibles (bloques ocultos)
+
+      const val = (el.value || "").trim();
+
+      if (val === "") {
+        el.classList.add("campo-pendiente");
+        pendientes.push(el);
+      }
+    });
+
+    return pendientes;
+  }
+
+  // Quitar la marca roja en cuanto el usuario complete el campo
+  if (form) {
+    const elementosInteractivos = form.querySelectorAll("input, select, textarea");
+
+    elementosInteractivos.forEach((el) => {
+      const tipo = el.type;
+
+      // Igual que antes: excluimos lo que no es "contestable"
+      if (
+        tipo === "hidden" ||
+        tipo === "button" ||
+        tipo === "submit" ||
+        tipo === "checkbox" ||   // los checkboxes van por otra lógica
+        tipo === "radio"
+      ) {
+        return;
+      }
+
+      if (el.readOnly || el.disabled) return;
+
+      const limpiarPendiente = () => {
+        const val = (el.value || "").trim();
+
+        // Si ahora tiene algún valor, le sacamos el rojo
+        if (val !== "") {
+          el.classList.remove("campo-pendiente");
+        }
+      };
+
+      el.addEventListener("input", limpiarPendiente);
+      el.addEventListener("change", limpiarPendiente);
+    });
+  }
+
+  // ==================== Conductas: Alcohol ====================
+  function actualizarVisibilidadAlcohol() {
+    const valor = valueOf("Frecuencia_alcohol");
+
+    // Ocultar si NO eligió nada o eligió "Nunca" (1)
+    if (valor === "" || valor === "0") {
+      if (bloqueAlcoholExtra) bloqueAlcoholExtra.style.display = "none";
+      if ($("Cantidad_alcohol")) $("Cantidad_alcohol").value = "";
+      if ($("Exceso_ocasion")) $("Exceso_ocasion").value = "";
+    } else {
+      if (bloqueAlcoholExtra) bloqueAlcoholExtra.style.display = "block";
+    }
+  }
+
+  if (selectFrecuenciaAlcohol) {
+    selectFrecuenciaAlcohol.addEventListener("change", actualizarVisibilidadAlcohol);
+    actualizarVisibilidadAlcohol();
+  }
+
+  // ==================== Conductas: Tabaco ====================
+  function actualizarVisibilidadTabaco() {
+    const v = valueOf("Fuma_actualmente");
+
+    if (v === "1") {
+      // Sí fuma → mostramos todo
+      if (bloqueTabacoExtra) bloqueTabacoExtra.style.display = "block";
+    } else {
+      // No fuma → ocultamos y reseteamos campos
+      if (bloqueTabacoExtra) bloqueTabacoExtra.style.display = "none";
+
+      if ($("Fuma_producto")) $("Fuma_producto").value = "";
+      if ($("Frecuencia_fumador")) $("Frecuencia_fumador").value = "";
+      if ($("Edad_inicio_tabaco")) $("Edad_inicio_tabaco").value = "";
+      if ($("Intento_dejar_tabaco")) $("Intento_dejar_tabaco").value = "";
+    }
+  }
+
+  if (selectFuma) {
+    selectFuma.addEventListener("change", actualizarVisibilidadTabaco);
+    actualizarVisibilidadTabaco();
+  }
+
+  // ==================== Diabetes: tipo de tratamiento ====================
+  function actualizarVisibilidadTipoTratamiento() {
+    const valor = valueOf("Tratamiento_diabetes");
+
+    if (valor === "1") {
+      // Sí recibe tratamiento → mostrar los checkboxes
+      if (bloqueTipoTratamiento) bloqueTipoTratamiento.style.display = "block";
+    } else {
+      // No recibe tratamiento → ocultar y resetear
+      if (bloqueTipoTratamiento) bloqueTipoTratamiento.style.display = "none";
+
+      const chkIds = ["Tto_diab_dieta", "Tto_diab_ADO", "Tto_diab_insulina", "Tto_diab_otro"];
+      chkIds.forEach((id) => {
+        const chk = $(id);
+        if (chk) chk.checked = false;
+      });
+    }
+  }
+
+  function actualizarVisibilidadDiabetes() {
+    const diag = valueOf("Diagnostico_diabetes");
+
+    if (diag === "1") {
+      // Tiene diagnóstico
+      if (bloqueTratamientoDiabetes) bloqueTratamientoDiabetes.style.display = "block";
+      if (bloqueHbA1c) bloqueHbA1c.style.display = "block";
+    } else {
+      // No tiene diagnóstico → ocultamos todo lo relacionado
+      if (bloqueTratamientoDiabetes) bloqueTratamientoDiabetes.style.display = "none";
+      if (bloqueHbA1c) bloqueHbA1c.style.display = "none";
+
+      if (selectTratamientoDiabetes) selectTratamientoDiabetes.value = "";
+      if ($("Hemoglobina_glicosilada")) $("Hemoglobina_glicosilada").value = "";
+
+      // Y también ocultamos tipos de tratamiento
+      if (bloqueTipoTratamiento) bloqueTipoTratamiento.style.display = "none";
+      const chkIds = ["Tto_diab_dieta", "Tto_diab_ADO", "Tto_diab_insulina", "Tto_diab_otro"];
+      chkIds.forEach((id) => {
+        const chk = $(id);
+        if (chk) chk.checked = false;
+      });
+    }
+
+    // Actualiza también la dependencia interna
+    actualizarVisibilidadTipoTratamiento();
+  }
+
+  if (selectTratamientoDiabetes) {
+    selectTratamientoDiabetes.addEventListener("change", actualizarVisibilidadTipoTratamiento);
+  }
+  if (selectDiagnosticoDiabetes) {
+    selectDiagnosticoDiabetes.addEventListener("change", actualizarVisibilidadDiabetes);
+  }
+
+  // Estado inicial coherente
+  actualizarVisibilidadTipoTratamiento();
+  actualizarVisibilidadDiabetes();
+
+  // ==================== Conductas: Hipertension arterial ====================
+  function actualizarVisibilidadHTA() {
+    const diagHTA = document.getElementById("Diagnostico_HTA")?.value ?? "";
+    const bloque = document.getElementById("bloque_hta_extra");
+
+    if (!bloque) return;
+
+    if (diagHTA === "1") {
+      bloque.style.display = "block";
+    } else {
+      bloque.style.display = "none";
+
+      document.getElementById("Tratamiento_HTA").value = "";
+      document.getElementById("Adherencia_tratamiento_HTA").value = "";
+
+      // Además, ocultamos y reseteamos tipos de tratamiento HTA
+      actualizarVisibilidadTipoTratamientoHTA();
+    }
+  }
+
+  actualizarVisibilidadHTA();
+
+  function actualizarVisibilidadTipoTratamientoHTA() {
+    const tratamientoHTA = document.getElementById("Tratamiento_HTA")?.value ?? "";
+    const bloqueTipoHTA = document.getElementById("bloque_tipo_tratamiento_hta");
+
+    if (!bloqueTipoHTA) return;
+
+    if (tratamientoHTA === "1") {
+      // Sí recibe tratamiento → mostrar checkboxes
+      bloqueTipoHTA.style.display = "block";
+    } else {
+      // No / No sabe / vacío → ocultar y resetear todo
+      bloqueTipoHTA.style.display = "none";
+
+      const ids = [
+        "Tto_hta_IECA",
+        "Tto_hta_ARAII",
+        "Tto_hta_BB",
+        "Tto_hta_diureticos",
+        "Tto_hta_otros"
+      ];
+      ids.forEach((id) => {
+        const chk = document.getElementById(id);
+        if (chk) chk.checked = false;
+      });
+    }
+  }
+
+  document.getElementById("Diagnostico_HTA")
+    ?.addEventListener("change", actualizarVisibilidadHTA);
+
+  document.getElementById("Tratamiento_HTA")
+    ?.addEventListener("change", actualizarVisibilidadTipoTratamientoHTA);
+
+  actualizarVisibilidadHTA();
+  actualizarVisibilidadTipoTratamientoHTA();
+
+  function actualizarVisibilidadAdherenciaHTA() {
+    const valor = (selectTratamientoHTA?.value || "").trim();
+
+    if (valor === "1") {
+      // Sí recibe tratamiento → mostrar
+      bloqueAdherenciaHTA.style.display = "block";
+    } else {
+      // No recibe → ocultar y resetear
+      bloqueAdherenciaHTA.style.display = "none";
+      document.getElementById("Adherencia_tratamiento_HTA").value = "";
+    }
+  }
+
+  selectTratamientoHTA.addEventListener("change", actualizarVisibilidadAdherenciaHTA);
+  actualizarVisibilidadAdherenciaHTA(); // Estado inicial
+
+  // ==================== IMC ====================
   function actualizarIMC() {
-    const pesoVal = parseFloat(pesoInput?.value || "");
-    const tallaVal = parseFloat(tallaInput?.value || "");
-    if (!isNaN(pesoVal) && !isNaN(tallaVal) && tallaVal > 0) {
-      const tallaM = tallaVal / 100;
-      const imc = pesoVal / (tallaM * tallaM);
+    const peso = parseFloat(valueOf("Peso"));
+    const tallaCm = parseFloat(valueOf("Talla"));
+
+    if (!isNaN(peso) && peso > 0 && !isNaN(tallaCm) && tallaCm > 0) {
+      const tallaM = tallaCm / 100;
+      const imc = peso / (tallaM * tallaM);
       if (imcInput) imcInput.value = imc.toFixed(2);
     } else {
       if (imcInput) imcInput.value = "";
@@ -72,6 +313,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ==================== AUDIT-C: cálculo de puntaje ====================
+  function calcularAuditCDesdeValores(freq, cant, binge) {
+    // Si no respondió nada → no calculamos
+    if (freq === "") return null;
+
+    // Si responde "Nunca" (0) → score total = 0 aunque no vea las otras
+    if (freq === "0") {
+      return 0;
+    }
+
+    // Para puntuar necesitamos las tres respuestas
+    if (cant === "" || binge === "") return null;
+
+    const f = Number(freq);
+    const c = Number(cant);
+    const b = Number(binge);
+
+    if (Number.isNaN(f) || Number.isNaN(c) || Number.isNaN(b)) return null;
+
+    return f + c + b; // 0–12
+  }
+
   // ==================== FUNCIÓN: Narrativo clínico ====================
 
   function generarNarrativo(data) {
@@ -80,19 +343,18 @@ document.addEventListener("DOMContentLoaded", () => {
       return map[value] || null;
     };
 
-    // Diccionarios de texto
     const sexoMap = {
       "1": "varón",
       "2": "mujer",
       "3": "persona de género no binario",
-      "4": "persona de sexo no especificado",
+      "4": "persona de sexo no especificado"
     };
 
     const estadoCivilMap = {
       "1": "soltero/a",
-      "2": "casado/a o en unión convivencial",
+      "2": "en pareja",
       "3": "separado/a o divorciado/a",
-      "4": "viudo/a",
+      "4": "viudo/a"
     };
 
     const nivelEducativoMap = {
@@ -102,35 +364,35 @@ document.addEventListener("DOMContentLoaded", () => {
       "4": "con secundaria incompleta",
       "5": "con secundaria completa",
       "6": "con estudios terciarios/universitarios incompletos",
-      "7": "con estudios terciarios/universitarios completos",
+      "7": "con estudios terciarios/universitarios completos"
     };
 
     const coberturaMap = {
       "1": "con cobertura de salud",
       "2": "sin cobertura de salud",
-      "3": "que desconoce su situación de cobertura",
+      "3": "que desconoce su situación de cobertura"
     };
 
     const situacionLaboralMap = {
       "1": "actualmente trabajando",
       "2": "sin trabajo pero en búsqueda activa",
-      "3": "sin trabajo y sin búsqueda activa",
+      "3": "sin trabajo y sin búsqueda activa"
     };
 
-    const frecuenciaAlcoholMap = {
+        const frecuenciaAlcoholMap = {
       "0": "nunca",
       "1": "1 vez al mes o menos",
       "2": "2 a 4 veces al mes",
       "3": "2 a 3 veces por semana",
-      "4": "4 o más veces por semana",
+      "4": "4 o más veces por semana"
     };
 
     const cantidadAlcoholMap = {
-      "0": "1 a 2 bebidas",
-      "1": "3 a 4 bebidas",
+      "0": "1 o 2 bebidas",
+      "1": "3 o 4 bebidas",
       "2": "5 a 6 bebidas",
       "3": "7 a 9 bebidas",
-      "4": "10 o más bebidas",
+      "4": "10 o más bebidas"
     };
 
     const excesoOcasionalMap = {
@@ -138,12 +400,12 @@ document.addEventListener("DOMContentLoaded", () => {
       "1": "menos de una vez al mes",
       "2": "mensualmente",
       "3": "semanalmente",
-      "4": "a diario o casi a diario",
+      "4": "a diario o casi a diario"
     };
 
     const actividad150Map = {
       "1": "realiza al menos 150 minutos semanales de actividad física moderada o intensa",
-      "2": "no alcanza los 150 minutos semanales de actividad física moderada o intensa",
+      "2": "no alcanza los 150 minutos semanales de actividad física moderada o intensa"
     };
 
     const motivoActividadMap = {
@@ -152,34 +414,34 @@ document.addEventListener("DOMContentLoaded", () => {
       "3": "principalmente con fines recreativos",
       "4": "refiere falta de tiempo",
       "5": "refiere limitaciones físicas",
-      "6": "refiere que no le interesa realizar actividad física",
+      "6": "refiere que no le interesa realizar actividad física"
     };
 
     const phqGadFrecuenciaMap = {
       "0": "nunca",
       "1": "en varios días",
       "2": "en más de la mitad de los días",
-      "3": "casi todos los días",
+      "3": "casi todos los días"
     };
 
     const transitoMap = {
       "1": "accidente de tránsito como conductor",
       "2": "accidente de tránsito como pasajero",
       "3": "accidente de tránsito como peatón",
-      "4": "no haber estado involucrado en accidentes de tránsito",
+      "4": "no haber estado involucrado en accidentes de tránsito"
     };
 
     const vacunaDobleBactMap = {
       "1": "haber recibido al menos una dosis de vacuna doble bacteriana en los últimos 10 años",
       "2": "no haber recibido vacuna doble bacteriana en los últimos 10 años",
-      "3": "desconocer si recibió vacuna doble bacteriana en los últimos 10 años",
+      "3": "desconocer si recibió vacuna doble bacteriana en los últimos 10 años"
     };
 
     const vacunaAntigripalMap = {
       "1": "haber recibido la vacuna antigripal en la última campaña anual",
       "2": "no haber recibido la vacuna antigripal en la última campaña anual",
       "3": "desconocer si recibió la vacuna antigripal",
-      "4": "refiere que no corresponde la vacuna antigripal",
+      "4": "refiere que no corresponde la vacuna antigripal"
     };
 
     const vacunaNeumococoMap = {
@@ -188,34 +450,37 @@ document.addEventListener("DOMContentLoaded", () => {
       "3": "haber recibido dosis única según nuevo esquema de vacuna conjugada 20",
       "4": "no haber recibido vacuna contra neumococo",
       "5": "desconocer si recibió vacuna contra neumococo",
-      "6": "refiere que no corresponde la vacunación contra neumococo",
+      "6": "refiere que no corresponde la vacunación contra neumococo"
     };
 
     const mamografiaMap = {
       "1": "haber realizado mamografía en los últimos 2 años",
       "2": "no haber realizado mamografía en los últimos 2 años",
-      "3": "refiere que no corresponde la realización de mamografía",
+      "3": "refiere que no corresponde la realización de mamografía"
     };
 
     const papanicolauMap = {
       "1": "haber realizado Papanicolaou (PAP) en los últimos 3 años",
       "2": "no haber realizado Papanicolaou (PAP) en los últimos 3 años",
-      "3": "refiere que no corresponde la realización de Papanicolaou (PAP)",
+      "3": "refiere que no corresponde la realización de Papanicolaou (PAP)"
     };
 
     const cribadoColorrectalMap = {
       "1": "haber realizado algún estudio de detección de cáncer colorrectal",
       "2": "no haber realizado estudios de detección de cáncer colorrectal",
-      "3": "refiere que no corresponde el cribado de cáncer colorrectal",
+      "3": "refiere que no corresponde el cribado de cáncer colorrectal"
     };
 
     // Sufijo de género para adjetivos (varón/mujer)
     let sufGenero = "";
     if (data.Sexo_registrado === "1") {
+      // varón
       sufGenero = "o";
     } else if (data.Sexo_registrado === "2") {
+      // mujer
       sufGenero = "a";
     } else {
+      // no binario / no especificado → formulaciones neutras
       sufGenero = "";
     }
 
@@ -305,15 +570,11 @@ document.addEventListener("DOMContentLoaded", () => {
         "4": "cigarrillo electrónico o vapeo",
         "5": "tabaco calentado",
         "6": "bolsas de nicotina",
-        "7": "otros productos de tabaco",
+        "7": "otros productos de tabaco"
       };
       const productoTxt = mapOrNull(data.Fuma_producto, productoMap) || "productos de tabaco";
-      const frecuenciaTxt =
-        data.Frecuencia_fumador === "1"
-          ? "de manera diaria"
-          : data.Frecuencia_fumador === "2"
-          ? "en forma ocasional"
-          : "";
+      const frecuenciaTxt = data.Frecuencia_fumador === "1" ? "de manera diaria" :
+        data.Frecuencia_fumador === "2" ? "en forma ocasional" : "";
 
       let tabaquismo = `Refiere consumo actual de ${productoTxt}`;
       if (frecuenciaTxt) tabaquismo += `, ${frecuenciaTxt}`;
@@ -332,7 +593,7 @@ document.addEventListener("DOMContentLoaded", () => {
       p2Partes.push("Niega consumo actual de tabaco.");
     }
 
-    // Alcohol (con AUDIT-C)
+        // Alcohol
     if (data.Frecuencia_alcohol && data.Frecuencia_alcohol !== "null") {
       if (data.Frecuencia_alcohol === "0") {
         // Nunca bebe
@@ -359,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (auditScore !== null) {
           const sexo = data.Sexo_registrado;
           // Varón: corte ≥4. Mujeres, NB y no especificado: corte ≥3
-          const corte = sexo === "1" ? 4 : 3;
+          const corte = (sexo === "1") ? 4 : 3;
 
           if (auditScore >= corte) {
             alcohol += " En cuanto al consumo de alcohol, el paciente sugiere patrón de consumo de riesgo.";
@@ -385,7 +646,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const p2 = p2Partes.length > 0 ? p2Partes.join(" ") : "";
+    const p2 = p2Partes.length > 0
+      ? "En relación con conductas de salud y estilo de vida: " + p2Partes.join(" ")
+      : "";
 
     // -------- Antecedentes biomédicos y parámetros actuales --------
     let p3Partes = [];
@@ -480,7 +743,7 @@ document.addEventListener("DOMContentLoaded", () => {
       p3Partes.push("Niega diagnóstico previo de hipertensión arterial.");
     }
 
-    // TA e IMC (con interpretación de rangos de IMC)
+        // TA e IMC (con interpretación de rangos de IMC)
     if (
       (data.TA_sistolica && data.TA_sistolica !== "null") ||
       (data.TA_diastolica && data.TA_diastolica !== "null") ||
@@ -492,10 +755,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const datos = [];
 
       if (
-        data.TA_sistolica &&
-        data.TA_sistolica !== "null" &&
-        data.TA_diastolica &&
-        data.TA_diastolica !== "null"
+        data.TA_sistolica && data.TA_sistolica !== "null" &&
+        data.TA_diastolica && data.TA_diastolica !== "null"
       ) {
         datos.push(`presión arterial ${data.TA_sistolica}/${data.TA_diastolica} mmHg`);
       }
@@ -503,6 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.Peso && data.Peso !== "null") {
         datos.push(`peso ${data.Peso} kg`);
       }
+
       if (data.Talla && data.Talla !== "null") {
         datos.push(`talla ${data.Talla} cm`);
       }
@@ -524,22 +786,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (imcNum < 18.5) {
           fraseIMC = "correspondiente a bajo peso.";
-        } else if (imcNum >= 18.5 && imcNum <= 24.9) {
+        } else if (imcNum >= 18.5 && imcNum < 25) {
           fraseIMC = "valor que se encuentra dentro del rango de peso normal.";
-        } else if (imcNum >= 25.0 && imcNum <= 29.9) {
+        } else if (imcNum >= 25 && imcNum < 30) {
           fraseIMC = "compatible con sobrepeso.";
-        } else if (imcNum >= 30.0 && imcNum <= 39.9) {
+        } else if (imcNum >= 30 && imcNum <= 40) {
           fraseIMC = "correspondiente a obesidad.";
-        } else if (imcNum >= 40.0) {
+        } else if (imcNum > 40) {
           fraseIMC = "hallazgo compatible con obesidad grave.";
         } else {
+          // fallback raro, por si algo sale extraño
           fraseIMC = "sin interpretación disponible.";
         }
 
         bio += fraseIMC;
         p3Partes.push(bio);
       } else {
-        // Sin IMC numérico válido: solo lo disponible
+        // Si no tenemos IMC bien formado, narramos sólo lo disponible
         if (tieneIMC) {
           datos.push(`IMC ${data.IMC}`);
         }
@@ -551,9 +814,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const p3 = p3Partes.length > 0 ? p3Partes.join(" ") : "";
+    const p3 = p3Partes.length > 0
+      ? "En cuanto a antecedentes biomédicos y parámetros actuales: " + p3Partes.join(" ")
+      : "";
 
-    // -------- Salud mental --------
+        // -------- Salud mental --------
     let p4 = "";
     const phq1Txt = mapOrNull(data.PHQ2_item1, phqGadFrecuenciaMap);
     const phq2Txt = mapOrNull(data.PHQ2_item2, phqGadFrecuenciaMap);
@@ -568,18 +833,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const detalles = [];
 
       if (phq1Txt) {
+        // Ítem: poco interés o placer en hacer las cosas
         detalles.push(`refiere poco interés o placer en realizar actividades ${phq1Txt}`);
       }
 
       if (phq2Txt) {
+        // Ítem: se ha sentido decaído/deprimido/sin esperanzas
         if (sufGenero) {
-          detalles.push(
-            `refiere sentirse decaíd${sufGenero} o con sensación de falta de esperanza ${phq2Txt}`
-          );
+          detalles.push(`refiere sentirse decaíd${sufGenero} o con sensación de falta de esperanza ${phq2Txt}`);
         } else {
-          detalles.push(
-            `refiere sentirse decaído/a o con sensación de falta de esperanza ${phq2Txt}`
-          );
+          // Formulación neutra para no binario / no especificado
+          detalles.push(`refiere ánimo bajo o sensación de falta de esperanza ${phq2Txt}`);
         }
       }
 
@@ -596,9 +860,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sufGenero) {
           detalles.push(`refiere sentirse ansios${sufGenero} o al límite ${gad1Txt}`);
         } else {
-          detalles.push(
-            `refiere malestar ansioso o sensación de estar al límite ${gad1Txt}`
-          );
+          detalles.push(`refiere malestar ansioso o sensación de estar al límite ${gad1Txt}`);
         }
       }
 
@@ -616,7 +878,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const n = Number(raw);
       if (Number.isNaN(n)) return null;
       // Soporta codificación 0–3 o 1–4
-      if (n >= 0 && n <= 3) return n; // ya está en 0–3
+      if (n >= 0 && n <= 3) return n;     // ya está en 0–3
       if (n >= 1 && n <= 4) return n - 1; // de 1–4 a 0–3
       return null;
     };
@@ -635,7 +897,9 @@ document.addEventListener("DOMContentLoaded", () => {
           "El paciente presenta síntomas depresivos que requieren evaluación complementaria con PHQ-9."
         );
       } else {
-        partesSM.push("No se identifican síntomas depresivos significativos.");
+        partesSM.push(
+          "No se identifican síntomas depresivos significativos."
+        );
       }
     }
 
@@ -649,14 +913,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (gadScore !== null) {
       if (gadScore >= 3) {
-        partesSM.push("El paciente presenta síntomas de ansiedad.");
+        partesSM.push(
+          "El paciente presenta síntomas de ansiedad."
+        );
       } else {
-        partesSM.push("El paciente no presenta síntomas de ansiedad.");
+        partesSM.push(
+          "El paciente no presenta síntomas de ansiedad."
+        );
       }
     }
 
     if (partesSM.length > 0) {
-      p4 = partesSM.join(" ");
+      p4 = "En el área de salud mental: " + partesSM.join(" ");
     }
 
     // -------- Salud general y medicación / polifarmacia --------
@@ -665,63 +933,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const transitoTxt = mapOrNull(data.Transito, transitoMap);
     if (transitoTxt) {
       if (data.Transito === "4") {
-        p5Partes.push(
-          "En los últimos 12 meses niega haber estado involucrado en accidentes de tránsito."
-        );
+        p5Partes.push("En los últimos 12 meses niega haber estado involucrado en accidentes de tránsito.");
       } else {
-        p5Partes.push(
-          `En los últimos 12 meses refiere antecedente de ${transitoTxt}.`
-        );
+        p5Partes.push(`En los últimos 12 meses refiere antecedente de ${transitoTxt}.`);
       }
     }
 
-    const cantMeds =
-      data.Cantidad_medicamentos && data.Cantidad_medicamentos !== "null"
-        ? data.Cantidad_medicamentos
-        : null;
-    // Polifarmacia: sólo se calcula para la base, no se narra
+    const cantMeds = data.Cantidad_medicamentos && data.Cantidad_medicamentos !== "null"
+      ? data.Cantidad_medicamentos
+      : null;
+    // Polifarmacia se sigue calculando para la base, pero no se narra
+
     if (cantMeds) {
       const meds = `Refiere uso habitual de ${cantMeds} medicamentos.`;
       p5Partes.push(meds);
     }
 
-    const p5 = p5Partes.length > 0 ? p5Partes.join(" ") : "";
+    const p5 = p5Partes.length > 0
+      ? "En relación con salud general y tratamiento farmacológico: " + p5Partes.join(" ")
+      : "";
 
-    // -------- Prevención y tamizajes --------
+        // -------- Prevención y tamizajes --------
     let p6Partes = [];
 
     // Doble bacteriana (no tiene "no corresponde")
-    const doblBactTxt = mapOrNull(
-      data.Vacunacion_dobleBacteriana,
-      vacunaDobleBactMap
-    );
+    const doblBactTxt = mapOrNull(data.Vacunacion_dobleBacteriana, vacunaDobleBactMap);
     if (doblBactTxt) {
       p6Partes.push(`Para vacuna doble bacteriana, refiere ${doblBactTxt}.`);
     }
 
     // Antigripal: value "4" = "no corresponde" → NO narrar nada
     if (data.Vacunacion_antigripal && data.Vacunacion_antigripal !== "4") {
-      const antiGripTxt = mapOrNull(
-        data.Vacunacion_antigripal,
-        vacunaAntigripalMap
-      );
+      const antiGripTxt = mapOrNull(data.Vacunacion_antigripal, vacunaAntigripalMap);
       if (antiGripTxt) {
-        p6Partes.push(
-          `Respecto de la vacuna antigripal, refiere ${antiGripTxt}.`
-        );
+        p6Partes.push(`Respecto de la vacuna antigripal, refiere ${antiGripTxt}.`);
       }
     }
 
     // Neumococo: value "6" = "no corresponde" → NO narrar
     if (data.Vacunacion_neumococo && data.Vacunacion_neumococo !== "6") {
-      const neumococoTxt = mapOrNull(
-        data.Vacunacion_neumococo,
-        vacunaNeumococoMap
-      );
+      const neumococoTxt = mapOrNull(data.Vacunacion_neumococo, vacunaNeumococoMap);
       if (neumococoTxt) {
-        p6Partes.push(
-          `En relación con la vacunación contra neumococo, refiere ${neumococoTxt}.`
-        );
+        p6Partes.push(`En relación con la vacunación contra neumococo, refiere ${neumococoTxt}.`);
       }
     }
 
@@ -737,411 +990,31 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.Papanicolau && data.Papanicolau !== "3") {
       const papTxt = mapOrNull(data.Papanicolau, papanicolauMap);
       if (papTxt) {
-        p6Partes.push(
-          `Respecto del Papanicolaou (PAP), refiere ${papTxt}.`
-        );
+        p6Partes.push(`Respecto del Papanicolaou (PAP), refiere ${papTxt}.`);
       }
     }
 
     // Cribado colorrectal: value "3" = "no corresponde" → NO narrar
     if (data.Cribado_colorrectal && data.Cribado_colorrectal !== "3") {
-      const colorrectalTxt = mapOrNull(
-        data.Cribado_colorrectal,
-        cribadoColorrectalMap
-      );
+      const colorrectalTxt = mapOrNull(data.Cribado_colorrectal, cribadoColorrectalMap);
       if (colorrectalTxt) {
-        p6Partes.push(
-          `Para cribado de cáncer colorrectal, refiere ${colorrectalTxt}.`
-        );
+        p6Partes.push(`Para cribado de cáncer colorrectal, refiere ${colorrectalTxt}.`);
       }
     }
 
-    const p6 = p6Partes.length > 0 ? p6Partes.join(" ") : "";
+    const p6 = p6Partes.length > 0
+      ? "En cuanto a medidas preventivas y estudios de tamizaje: " + p6Partes.join(" ")
+      : "";
 
-    // -------- Unimos en párrafos separados con subtítulos --------
-    const parrafos = [];
-
-    if (p1 && p1.trim().length > 0) {
-      parrafos.push(p1.trim());
-    }
-    if (p2 && p2.trim().length > 0) {
-      parrafos.push("Conductas de salud y estilo de vida\n" + p2.trim());
-    }
-    if (p3 && p3.trim().length > 0) {
-      parrafos.push(
-        "Antecedentes biomédicos y parámetros actuales\n" + p3.trim()
-      );
-    }
-    if (p4 && p4.trim().length > 0) {
-      parrafos.push("Salud mental\n" + p4.trim());
-    }
-    if (p5 && p5.trim().length > 0) {
-      parrafos.push(
-        "Salud general y tratamiento farmacológico\n" + p5.trim()
-      );
-    }
-    if (p6 && p6.trim().length > 0) {
-      parrafos.push(
-        "Medidas preventivas y estudios de tamizaje\n" + p6.trim()
-      );
-    }
+    // -------- Unimos en párrafos separados --------
+    const parrafos = [p1, p2, p3, p4, p5, p6]
+      .map((p) => (p || "").trim())
+      .filter((p) => p.length > 0);
 
     return parrafos.join("\n\n");
   }
 
-  // ==================== AUDIT-C: cálculo de puntaje ====================
-  function calcularAuditCDesdeValores(freq, cant, binge) {
-    // freq, cant, binge vienen codificados 0–4
-    const map = { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4 };
-
-    // Si no respondió frecuencia, no calculamos nada
-    if (freq === "" || freq === null || typeof freq === "undefined") {
-      return null;
-    }
-
-    // Si responde "Nunca" (0), el puntaje total es 0 aunque no vea las otras preguntas
-    if (freq === "0") {
-      return 0;
-    }
-
-    // Para el resto de los casos, necesitamos las 3 respuestas
-    if (
-      cant === "" ||
-      cant === null ||
-      typeof cant === "undefined" ||
-      binge === "" ||
-      binge === null ||
-      typeof binge === "undefined"
-    ) {
-      return null;
-    }
-
-    if (
-      !map.hasOwnProperty(freq) ||
-      !map.hasOwnProperty(cant) ||
-      !map.hasOwnProperty(binge)
-    ) {
-      return null;
-    }
-
-    return map[freq] + map[cant] + map[binge];
-  }
-
-  // ==================== Conductas: Alcohol ====================
-  function actualizarVisibilidadAlcohol() {
-    const valor = (document.getElementById("Frecuencia_alcohol")?.value || "");
-
-    // Ocultar si NO eligió nada o eligió "Nunca" (0)
-    if (valor === "" || valor === "0") {
-      if (bloqueAlcoholExtra) bloqueAlcoholExtra.style.display = "none";
-      if ($("Cantidad_alcohol")) $("Cantidad_alcohol").value = "";
-      if ($("Exceso_ocasion")) $("Exceso_ocasion").value = "";
-    } else {
-      if (bloqueAlcoholExtra) bloqueAlcoholExtra.style.display = "block";
-    }
-  }
-
-  if (selectFrecuenciaAlcohol) {
-    selectFrecuenciaAlcohol.addEventListener(
-      "change",
-      actualizarVisibilidadAlcohol
-    );
-    actualizarVisibilidadAlcohol();
-  }
-
-  // ==================== Conductas: Tabaco ====================
-  function actualizarVisibilidadTabaco() {
-    const v = $("Fuma_actualmente")?.value || "";
-
-    if (v === "1") {
-      if (bloqueTabacoExtra) bloqueTabacoExtra.style.display = "block";
-    } else {
-      if (bloqueTabacoExtra) bloqueTabacoExtra.style.display = "none";
-
-      if ($("Fuma_producto")) $("Fuma_producto").value = "";
-      if ($("Frecuencia_fumador")) $("Frecuencia_fumador").value = "";
-      if ($("Edad_inicio_tabaco")) $("Edad_inicio_tabaco").value = "";
-      if ($("Intento_dejar_tabaco")) $("Intento_dejar_tabaco").value = "";
-    }
-  }
-
-  if (selectFuma) {
-    selectFuma.addEventListener("change", actualizarVisibilidadTabaco);
-    actualizarVisibilidadTabaco();
-  }
-
-  // ==================== Diabetes: bloques condicionales ====================
-  function actualizarVisibilidadDiabetes() {
-    const diag = $("Diagnostico_diabetes")?.value || "";
-    if (diag === "1") {
-      if (bloqueDiabetes) bloqueDiabetes.style.display = "block";
-    } else {
-      if (bloqueDiabetes) bloqueDiabetes.style.display = "none";
-
-      if ($("Tratamiento_diabetes")) $("Tratamiento_diabetes").value = "";
-      if ($("Tto_diab_dieta")) $("Tto_diab_dieta").checked = false;
-      if ($("Tto_diab_ADO")) $("Tto_diab_ADO").checked = false;
-      if ($("Tto_diab_insulina")) $("Tto_diab_insulina").checked = false;
-      if ($("Tto_diab_otro")) $("Tto_diab_otro").checked = false;
-      if (bloqueTipoTratamiento) bloqueTipoTratamiento.style.display = "none";
-      if ($("Hemoglobina_glicosilada"))
-        $("Hemoglobina_glicosilada").value = "";
-      if (bloqueHbA1c) bloqueHbA1c.style.display = "none";
-    }
-  }
-
-  if (selectDiagnosticoDiabetes) {
-    selectDiagnosticoDiabetes.addEventListener(
-      "change",
-      actualizarVisibilidadDiabetes
-    );
-    actualizarVisibilidadDiabetes();
-  }
-
-  function actualizarVisibilidadTipoTratamiento() {
-    const valor = $("Tratamiento_diabetes")?.value || "";
-
-    if (valor === "1") {
-      if (bloqueTipoTratamiento) bloqueTipoTratamiento.style.display = "block";
-    } else {
-      if (bloqueTipoTratamiento) bloqueTipoTratamiento.style.display = "none";
-
-      const chkIds = [
-        "Tto_diab_dieta",
-        "Tto_diab_ADO",
-        "Tto_diab_insulina",
-        "Tto_diab_otro",
-      ];
-      chkIds.forEach((id) => {
-        const c = $(id);
-        if (c) c.checked = false;
-      });
-    }
-  }
-
-  if (selectTratamientoDiabetes) {
-    selectTratamientoDiabetes.addEventListener(
-      "change",
-      actualizarVisibilidadTipoTratamiento
-    );
-    actualizarVisibilidadTipoTratamiento();
-  }
-
-  function actualizarVisibilidadHbA1c() {
-    const diag = $("Diagnostico_diabetes")?.value || "";
-    if (diag === "1") {
-      if (bloqueHbA1c) bloqueHbA1c.style.display = "block";
-    } else {
-      if (bloqueHbA1c) bloqueHbA1c.style.display = "none";
-      if ($("Hemoglobina_glicosilada"))
-        $("Hemoglobina_glicosilada").value = "";
-    }
-  }
-
-  if (selectDiagnosticoDiabetes) {
-    selectDiagnosticoDiabetes.addEventListener(
-      "change",
-      actualizarVisibilidadHbA1c
-    );
-    actualizarVisibilidadHbA1c();
-  }
-
-  // ==================== HTA: bloques condicionales ====================
-  function actualizarVisibilidadHTA() {
-    const diag = $("Diagnostico_HTA")?.value || "";
-
-    if (diag === "1") {
-      if (bloqueHTA) bloqueHTA.style.display = "block";
-      } else {
-      if (bloqueHTA) bloqueHTA.style.display = "none";
-
-      if ($("Tratamiento_HTA")) $("Tratamiento_HTA").value = "";
-      if (bloqueTipoTratamientoHTA)
-        bloqueTipoTratamientoHTA.style.display = "none";
-      ["Tto_hta_IECA", "Tto_hta_ARAII", "Tto_hta_BB", "Tto_hta_diureticos", "Tto_hta_otros"].forEach(
-        (id) => {
-          const c = $(id);
-          if (c) c.checked = false;
-        }
-      );
-
-      // 🔹 Ocultar y limpiar adherencia
-      if (bloqueAdherenciaHTA) bloqueAdherenciaHTA.style.display = "none";
-      if ($("Adherencia_tratamiento_HTA"))
-        $("Adherencia_tratamiento_HTA").value = "";
-
-      if ($("TA_sistolica")) $("TA_sistolica").value = "";
-      if ($("TA_diastolica")) $("TA_diastolica").value = "";
-    }
-  }
-
-  if (selectDiagnosticoHTA) {
-    selectDiagnosticoHTA.addEventListener("change", () => {
-      actualizarVisibilidadHTA();
-      actualizarVisibilidadAdherenciaHTA();
-    });
-    actualizarVisibilidadHTA();
-    actualizarVisibilidadAdherenciaHTA();
-  }
-
-  function actualizarVisibilidadTipoTratamientoHTA() {
-    const valor = $("Tratamiento_HTA")?.value || "";
-
-    if (valor === "1") {
-      if (bloqueTipoTratamientoHTA)
-        bloqueTipoTratamientoHTA.style.display = "block";
-    } else {
-      if (bloqueTipoTratamientoHTA)
-        bloqueTipoTratamientoHTA.style.display = "none";
-
-      ["Tto_hta_IECA", "Tto_hta_ARAII", "Tto_hta_BB", "Tto_hta_diureticos", "Tto_hta_otros"].forEach(
-        (id) => {
-          const c = $(id);
-          if (c) c.checked = false;
-        }
-      );
-    }
-  }
-
-  function actualizarVisibilidadAdherenciaHTA() {
-    const diag = $("Diagnostico_HTA")?.value || "";
-    const valorTrat = $("Tratamiento_HTA")?.value || "";
-
-    // Solo mostramos si:
-    // - Tiene diagnóstico de HTA (diag === "1")
-    // - Y recibe tratamiento (Tratamiento_HTA === "1")
-    if (diag === "1" && valorTrat === "1") {
-      if (bloqueAdherenciaHTA) bloqueAdherenciaHTA.style.display = "block";
-    } else {
-      if (bloqueAdherenciaHTA) bloqueAdherenciaHTA.style.display = "none";
-      if ($("Adherencia_tratamiento_HTA"))
-        $("Adherencia_tratamiento_HTA").value = "";
-    }
-  }
-
-  if (selectTratamientoHTA) {
-    selectTratamientoHTA.addEventListener("change", () => {
-      actualizarVisibilidadTipoTratamientoHTA();
-      actualizarVisibilidadAdherenciaHTA();
-    });
-
-    // Estado inicial al cargar
-    actualizarVisibilidadTipoTratamientoHTA();
-    actualizarVisibilidadAdherenciaHTA();
-  }
-
-  // ==================== PHQ-2 y GAD-2: visibilidad de segundos ítems ====================
-  function actualizarVisibilidadPHQ2() {
-    const v1 = $("PHQ2_item1")?.value || "";
-    const v2 = $("PHQ2_item2")?.value || "";
-
-    if (!v1 && !v2) {
-      if (bloquePHQ2) bloquePHQ2.style.display = "none";
-    } else {
-      if (bloquePHQ2) bloquePHQ2.style.display = "block";
-    }
-  }
-
-  if (selectPHQ1) {
-    selectPHQ1.addEventListener("change", actualizarVisibilidadPHQ2);
-  }
-  if (selectPHQ2) {
-    selectPHQ2.addEventListener("change", actualizarVisibilidadPHQ2);
-  }
-  actualizarVisibilidadPHQ2();
-
-  function actualizarVisibilidadGAD2() {
-    const v1 = $("GAD2_item1")?.value || "";
-    const v2 = $("GAD2_item2")?.value || "";
-
-    if (!v1 && !v2) {
-      if (bloqueGAD2) bloqueGAD2.style.display = "none";
-    } else {
-      if (bloqueGAD2) bloqueGAD2.style.display = "block";
-    }
-  }
-
-  if (selectGAD1) {
-    selectGAD1.addEventListener("change", actualizarVisibilidadGAD2);
-  }
-  if (selectGAD2) {
-    selectGAD2.addEventListener("change", actualizarVisibilidadGAD2);
-  }
-  actualizarVisibilidadGAD2();
-
-  // ==================== Marcado de campos pendientes ====================
-  function marcarCamposPendientes(formEl) {
-    const pendientes = [];
-
-    const elementos = formEl.querySelectorAll("input, select, textarea");
-
-    elementos.forEach((el) => {
-      const tipo = el.type;
-
-      if (
-        tipo === "hidden" ||
-        tipo === "button" ||
-        tipo === "submit" ||
-        tipo === "checkbox" ||
-        tipo === "radio"
-      ) {
-        return;
-      }
-
-      if (el.readOnly || el.disabled) return;
-
-      const requerido = el.hasAttribute("required");
-
-      const valor = (el.value || "").trim();
-      if (requerido && valor === "") {
-        el.classList.add("campo-pendiente");
-        pendientes.push(el);
-      }
-    });
-
-    return pendientes;
-  }
-
-  // Quitar la marca roja en cuanto el usuario complete el campo
-  if (form) {
-    const elementosInteractivos = form.querySelectorAll(
-      "input, select, textarea"
-    );
-
-    elementosInteractivos.forEach((el) => {
-      const tipo = el.type;
-
-      if (
-        tipo === "hidden" ||
-        tipo === "button" ||
-        tipo === "submit" ||
-        tipo === "checkbox" ||
-        tipo === "radio"
-      ) {
-        return;
-      }
-
-      if (el.readOnly || el.disabled) return;
-
-      const limpiarPendiente = () => {
-        const val = (el.value || "").trim();
-
-        if (val !== "") {
-          el.classList.remove("campo-pendiente");
-        }
-      };
-
-      el.addEventListener("input", limpiarPendiente);
-      el.addEventListener("change", limpiarPendiente);
-    });
-  }
-
   // ==================== Submit del formulario ====================
-  function valueOf(id) {
-    const el = $(id);
-    return el ? el.value : "";
-  }
-
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -1153,9 +1026,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (fumaValor === "1" && edadInicioVal !== "") {
         const n = Number(edadInicioVal);
         if (!Number.isInteger(n) || n < 0 || n > 99) {
-          alert(
-            "La edad en que comenzó a fumar debe ser un número entre 0 y 99."
-          );
+          alert("La edad en que comenzó a fumar debe ser un número entre 0 y 99.");
           $("Edad_inicio_tabaco")?.focus();
           return;
         }
@@ -1181,10 +1052,11 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (!continuar) {
+          // Llevar al usuario al primer campo pendiente
           const primero = pendientes[0];
           primero.scrollIntoView({ behavior: "smooth", block: "center" });
           primero.focus();
-          return;
+          return; // NO se envía el formulario, sigue completando
         }
       }
 
@@ -1193,146 +1065,210 @@ document.addEventListener("DOMContentLoaded", () => {
         actualizarIMC();
       }
 
-      // Tratamiento por DIABETES: variables 1=Sí, 2=No, null=No aplica
+      // ✅ Tratamiento por DIABETES: variables con 1=Sí, 2=No, null=No aplica
       const diagDiabetes = valueOf("Diagnostico_diabetes");
       const rawTratamientoDiabetes = valueOf("Tratamiento_diabetes");
 
-      const chkTtoDieta = $("Tto_diab_dieta");
-      const chkTtoADO = $("Tto_diab_ADO");
-      const chkTtoInsulina = $("Tto_diab_insulina");
-      const chkTtoOtro = $("Tto_diab_otro");
+      const chkTtoDieta    = document.getElementById("Tto_diab_dieta");
+      const chkTtoADO      = document.getElementById("Tto_diab_ADO");
+      const chkTtoInsulina = document.getElementById("Tto_diab_insulina");
+      const chkTtoOtro     = document.getElementById("Tto_diab_otro");
 
+      // Valor a enviar en la variable Tratamiento_diabetes
       let Tratamiento_diabetes_env;
+
+      // Variables por tipo de tratamiento
       let ttoDieta;
       let ttoADO;
       let ttoInsulina;
       let ttoOtro;
 
-      if (diagDiabetes === "1") {
-        if (rawTratamientoDiabetes === "1") {
-          Tratamiento_diabetes_env = "1";
-          ttoDieta = chkTtoDieta?.checked ? "1" : "2";
-          ttoADO = chkTtoADO?.checked ? "1" : "2";
-          ttoInsulina = chkTtoInsulina?.checked ? "1" : "2";
-          ttoOtro = chkTtoOtro?.checked ? "1" : "2";
-        } else if (rawTratamientoDiabetes === "2") {
-          Tratamiento_diabetes_env = "2";
-          ttoDieta = null;
-          ttoADO = null;
-          ttoInsulina = null;
-          ttoOtro = null;
-        } else {
-          Tratamiento_diabetes_env = null;
-          ttoDieta = null;
-          ttoADO = null;
-          ttoInsulina = null;
-          ttoOtro = null;
-        }
+      if (diagDiabetes !== "1") {
+        // No tiene diagnóstico de diabetes → esta pregunta no corresponde
+        Tratamiento_diabetes_env = "null";
+        ttoDieta    = "null";
+        ttoADO      = "null";
+        ttoInsulina = "null";
+        ttoOtro     = "null";
       } else {
-        Tratamiento_diabetes_env = null;
-        ttoDieta = null;
-        ttoADO = null;
-        ttoInsulina = null;
-        ttoOtro = null;
+        // Tiene diagnóstico de diabetes
+        if (rawTratamientoDiabetes === "1") {
+          // Recibe tratamiento
+          Tratamiento_diabetes_env = "1";
+
+          // Cada tipo: 1=Sí si está tildado, 2=No si no lo está
+          ttoDieta    = chkTtoDieta    && chkTtoDieta.checked    ? "1" : "2";
+          ttoADO      = chkTtoADO      && chkTtoADO.checked      ? "1" : "2";
+          ttoInsulina = chkTtoInsulina && chkTtoInsulina.checked ? "1" : "2";
+          ttoOtro     = chkTtoOtro     && chkTtoOtro.checked     ? "1" : "2";
+
+          // (Opcional) exigir al menos un "Sí":
+          if (
+            ttoDieta === "2" &&
+            ttoADO === "2" &&
+            ttoInsulina === "2" &&
+            ttoOtro === "2"
+          ) {
+            alert("Por favor, seleccione al menos un tipo de tratamiento para la diabetes.");
+            document.getElementById("Tipo_tratamiento_diabetes_group")
+              ?.scrollIntoView({ behavior: "smooth" });
+            return;
+          }
+        } else if (rawTratamientoDiabetes === "2") {
+          // Tiene diagnóstico pero NO recibe tratamiento
+          Tratamiento_diabetes_env = "2";
+
+          // Todos los tipos = No (2)
+          ttoDieta    = "2";
+          ttoADO      = "2";
+          ttoInsulina = "2";
+          ttoOtro     = "2";
+        } else {
+          // Tiene diagnóstico, pero no respondió si recibe tratamiento
+          Tratamiento_diabetes_env = "null";
+          ttoDieta    = "null";
+          ttoADO      = "null";
+          ttoInsulina = "null";
+          ttoOtro     = "null";
+        }
       }
 
-      // Tratamiento HTA: 1=Con tratamiento, 2=Sin tratamiento, 3=Desconoce
+      // ✅ Tratamiento por HTA: 1=Sí, 2=No, null=No aplica
       const diagHTA = valueOf("Diagnostico_HTA");
       const rawTratamientoHTA = valueOf("Tratamiento_HTA");
 
-      const chkHTA_IECA = $("Tto_hta_IECA");
-      const chkHTA_ARAII = $("Tto_hta_ARAII");
-      const chkHTA_BB = $("Tto_hta_BB");
-      const chkHTA_Diur = $("Tto_hta_diureticos");
-      const chkHTA_Otros = $("Tto_hta_otros");
+      const chkHTA_IECA       = document.getElementById("Tto_hta_IECA");
+      const chkHTA_ARAII      = document.getElementById("Tto_hta_ARAII");
+      const chkHTA_BB         = document.getElementById("Tto_hta_BB");
+      const chkHTA_diureticos = document.getElementById("Tto_hta_diureticos");
+      const chkHTA_otros      = document.getElementById("Tto_hta_otros");
 
+      // Valor a enviar en la variable Tratamiento_HTA
       let Tratamiento_HTA_env;
+
+      // Variables por tipo
       let ttoHTA_IECA;
       let ttoHTA_ARAII;
       let ttoHTA_BB;
       let ttoHTA_diureticos;
       let ttoHTA_otros;
 
-      if (diagHTA === "1") {
-        if (rawTratamientoHTA === "1") {
-          Tratamiento_HTA_env = "1";
-          ttoHTA_IECA = chkHTA_IECA?.checked ? "1" : "2";
-          ttoHTA_ARAII = chkHTA_ARAII?.checked ? "1" : "2";
-          ttoHTA_BB = chkHTA_BB?.checked ? "1" : "2";
-          ttoHTA_diureticos = chkHTA_Diur?.checked ? "1" : "2";
-          ttoHTA_otros = chkHTA_Otros?.checked ? "1" : "2";
-        } else if (rawTratamientoHTA === "2") {
-          Tratamiento_HTA_env = "2";
-          ttoHTA_IECA = null;
-          ttoHTA_ARAII = null;
-          ttoHTA_BB = null;
-          ttoHTA_diureticos = null;
-          ttoHTA_otros = null;
-        } else if (rawTratamientoHTA === "3") {
-          Tratamiento_HTA_env = "3";
-          ttoHTA_IECA = null;
-          ttoHTA_ARAII = null;
-          ttoHTA_BB = null;
-          ttoHTA_diureticos = null;
-          ttoHTA_otros = null;
-        } else {
-          Tratamiento_HTA_env = null;
-          ttoHTA_IECA = null;
-          ttoHTA_ARAII = null;
-          ttoHTA_BB = null;
-          ttoHTA_diureticos = null;
-          ttoHTA_otros = null;
-        }
+      if (diagHTA !== "1") {
+        // No tiene diagnóstico de HTA → esta pregunta no corresponde
+        Tratamiento_HTA_env = "null";
+        ttoHTA_IECA       = "null";
+        ttoHTA_ARAII      = "null";
+        ttoHTA_BB         = "null";
+        ttoHTA_diureticos = "null";
+        ttoHTA_otros      = "null";
       } else {
-        Tratamiento_HTA_env = null;
-        ttoHTA_IECA = null;
-        ttoHTA_ARAII = null;
-        ttoHTA_BB = null;
-        ttoHTA_diureticos = null;
-        ttoHTA_otros = null;
+        // Tiene diagnóstico de HTA
+        if (rawTratamientoHTA === "1") {
+          // Recibe tratamiento
+          Tratamiento_HTA_env = "1";
+
+          ttoHTA_IECA       = chkHTA_IECA       && chkHTA_IECA.checked       ? "1" : "2";
+          ttoHTA_ARAII      = chkHTA_ARAII      && chkHTA_ARAII.checked      ? "1" : "2";
+          ttoHTA_BB         = chkHTA_BB         && chkHTA_BB.checked         ? "1" : "2";
+          ttoHTA_diureticos = chkHTA_diureticos && chkHTA_diureticos.checked ? "1" : "2";
+          ttoHTA_otros      = chkHTA_otros      && chkHTA_otros.checked      ? "1" : "2";
+
+          // (Opcional) exigir al menos un "Sí":
+          if (
+            ttoHTA_IECA       === "2" &&
+            ttoHTA_ARAII      === "2" &&
+            ttoHTA_BB         === "2" &&
+            ttoHTA_diureticos === "2" &&
+            ttoHTA_otros      === "2"
+          ) {
+            alert("Por favor, seleccione al menos un tipo de tratamiento para la hipertensión.");
+            document.getElementById("Tipo_tratamiento_hta_group")
+              ?.scrollIntoView({ behavior: "smooth" });
+            return;
+          }
+        } else if (rawTratamientoHTA === "2") {
+          // Tiene diagnóstico pero NO recibe tratamiento
+          Tratamiento_HTA_env = "2";
+
+          // Todos los tipos = No (2)
+          ttoHTA_IECA       = "2";
+          ttoHTA_ARAII      = "2";
+          ttoHTA_BB         = "2";
+          ttoHTA_diureticos = "2";
+          ttoHTA_otros      = "2";
+        } else {
+          // Tiene diagnóstico, pero no respondió si recibe tratamiento
+          Tratamiento_HTA_env = "null";
+          ttoHTA_IECA       = "null";
+          ttoHTA_ARAII      = "null";
+          ttoHTA_BB         = "null";
+          ttoHTA_diureticos = "null";
+          ttoHTA_otros      = "null";
+        }
       }
 
-      // Calcular AUDIT-C para enviar a la base
+      // ---- Calcular Polifarmacia según Cantidad_medicamentos ----
+      // Codificación: 1 = Sí (≥5 meds), 2 = No (<5), "" si no se completó
+      let polifarmaciaValor = "";
+      const cantMedValor = cantMedInput ? cantMedInput.value.trim() : "";
+
+      if (cantMedValor !== "") {
+        const cantNum = Number(cantMedValor);
+        if (!Number.isNaN(cantNum) && cantNum >= 0) {
+          polifarmaciaValor = cantNum >= 5 ? "1" : "2";
+        }
+      }
+
+      if (polifInput) {
+        polifInput.value = polifarmaciaValor; // por si querés inspeccionar desde el DOM
+      }
+
+            // ---- Calcular AUDIT-C (audit-c) ----
       const freqAlc = valueOf("Frecuencia_alcohol");
       const cantAlc = valueOf("Cantidad_alcohol");
       const excesoAlc = valueOf("Exceso_ocasion");
 
-      const auditScore = calcularAuditCDesdeValores(
-        freqAlc,
-        cantAlc,
-        excesoAlc
-      );
-
-      // PHQ-2 y GAD-2 ya se interpretan en el narrativo;
-      // acá sólo armamos el valor 0–6 para cada uno
-      const parsePhqGadValue = (raw) => {
-        if (!raw || raw === "null") return null;
-        const n = Number(raw);
-        if (Number.isNaN(n)) return null;
-        if (n >= 0 && n <= 3) return n;
-        if (n >= 1 && n <= 4) return n - 1;
-        return null;
-      };
-
+      const auditScore = calcularAuditCDesdeValores(freqAlc, cantAlc, excesoAlc);
+      
+      // ---- Calcular PHQ-2 ----
       let phqScore = null;
-      const phq1Score = parsePhqGadValue(valueOf("PHQ2_item1"));
-      const phq2Score = parsePhqGadValue(valueOf("PHQ2_item2"));
-      if (phq1Score !== null && phq2Score !== null) {
-        phqScore = phq1Score + phq2Score;
-      }
 
+      const phq1 = valueOf("PHQ2_item1"); // 0–3
+      const phq2 = valueOf("PHQ2_item2"); // 0–3
+
+      if (phq1 !== "" && phq2 !== "" && phq1 !== "null" && phq2 !== "null") {
+        const s1 = Number(phq1);
+        const s2 = Number(phq2);
+
+        if (!Number.isNaN(s1) && !Number.isNaN(s2)) {
+          phqScore = s1 + s2;  // 0–6
+        }
+      }
+      
+      // ---- Calcular GAD-2 ----
       let gadScore = null;
-      const gad1Score = parsePhqGadValue(valueOf("GAD2_item1"));
-      const gad2Score = parsePhqGadValue(valueOf("GAD2_item2"));
-      if (gad1Score !== null && gad2Score !== null) {
-        gadScore = gad1Score + gad2Score;
+
+      const gad1Val = valueOf("GAD2_item1"); // 0–3
+      const gad2Val = valueOf("GAD2_item2"); // 0–3
+
+      if (gad1Val !== "" && gad2Val !== "" && gad1Val !== "null" && gad2Val !== "null") {
+        const g1 = Number(gad1Val);
+        const g2 = Number(gad2Val);
+
+        if (!Number.isNaN(g1) && !Number.isNaN(g2)) {
+          gadScore = g1 + g2;  // 0–6
+        }
       }
 
-      // Construcción del objeto para enviar
+      // ---- Armar el objeto de datos para enviar ----
       const data = {
         // Identificación
         ID_paciente: valueOf("ID_paciente"),
         Fecha_consulta: valueOf("Fecha_consulta"),
+
+        // Vivienda
+        Agua_potable: valueOf("Agua_potable"),
+        Cloaca: valueOf("Cloaca"),
 
         // Sociodemográficos
         Edad: valueOf("Edad"),
@@ -1341,10 +1277,6 @@ document.addEventListener("DOMContentLoaded", () => {
         Nivel_educativo: valueOf("Nivel_educativo"),
         Cobertura_salud: valueOf("Cobertura_salud"),
         Situacion_laboral: valueOf("Situacion_laboral"),
-
-        // Vivienda
-        Agua_potable: valueOf("Agua_potable"),
-        Cloaca: valueOf("Cloaca"),
 
         // Conductas: Tabaquismo
         Fuma_actualmente: valueOf("Fuma_actualmente"),
@@ -1373,13 +1305,11 @@ document.addEventListener("DOMContentLoaded", () => {
         Tto_diab_insulina: ttoInsulina,
         Tto_diab_otro: ttoOtro,
         Hemoglobina_glicosilada: valueOf("Hemoglobina_glicosilada"),
-
         Diagnostico_dislipidemia: valueOf("Diagnostico_dislipidemia"),
         Colesterol_total: valueOf("Colesterol_total"),
         HDL: valueOf("HDL"),
         LDL: valueOf("LDL"),
         Trigliceridos: valueOf("Trigliceridos"),
-
         Diagnostico_HTA: valueOf("Diagnostico_HTA"),
         Tratamiento_HTA: Tratamiento_HTA_env,
         Tto_hta_IECA: ttoHTA_IECA,
@@ -1402,11 +1332,12 @@ document.addEventListener("DOMContentLoaded", () => {
         GAD2_item2: valueOf("GAD2_item2"),
         "gad-2": gadScore !== null ? String(gadScore) : "",
 
-        // Salud general / tránsito
+        // Salud general
         Transito: valueOf("Transito"),
-        Cantidad_medicamentos: valueOf("Cantidad_medicamentos"),
+        Cantidad_medicamentos: cantMedValor,
+        Polifarmacia: polifarmaciaValor,
 
-        // Prevención y tamizajes
+        // Prevención
         Vacunacion_dobleBacteriana: valueOf("Vacunacion_dobleBacteriana"),
         Vacunacion_antigripal: valueOf("Vacunacion_antigripal"),
         Vacunacion_neumococo: valueOf("Vacunacion_neumococo"),
@@ -1415,21 +1346,33 @@ document.addEventListener("DOMContentLoaded", () => {
         Cribado_colorrectal: valueOf("Cribado_colorrectal"),
       };
 
-      // Generar y mostrar narrativo
-      const narrativo = generarNarrativo(data);
+      // 🔊 Generar narrativo clínico antes de normalizar valores vacíos
+      const textoNarrativo = generarNarrativo(data);
       const narrativoEl = $("narrativo");
       if (narrativoEl) {
-        narrativoEl.value = narrativo;
+        narrativoEl.value = textoNarrativo;
       }
 
-      // Feedback al usuario
+      // 🔄 Normalizar valores vacíos a "null"
+      for (const key in data) {
+        if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
+
+        const v = data[key];
+
+        if (v === "" || v === null || typeof v === "undefined") {
+          data[key] = "null";   // lo que va a ver Google Sheets
+        }
+      }
+
+      // Feedback visual
+      if (resultado) resultado.innerText = "Datos enviados correctamente.";
       if (botonEnviar) {
         botonEnviar.innerText = "¡Enviado!";
         botonEnviar.disabled = true;
       }
       if (nuevoRegistro) nuevoRegistro.style.display = "inline-block";
 
-      // Envío al Apps Script
+      // Envío al Apps Script (mismo endpoint que antes)
       fetch(
         "https://script.google.com/macros/s/AKfycbzs2Cu7rsI6brbFDzlyhgrZbOgVhjPVfOl2qlu5EREHG9SN6X7fDxzR4XYc3sIg4KgT4A/exec",
         {
@@ -1445,35 +1388,41 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==================== Nuevo registro (reset) ====================
   if (nuevoRegistro) {
     nuevoRegistro.addEventListener("click", () => {
+      // Reset del formulario
       if (form) form.reset();
 
+      // Limpiar IMC
       if (imcInput) imcInput.value = "";
 
+      // Limpiar mensaje de resultado
       if (resultado) resultado.innerText = "";
 
+      // Restaurar botón enviar
       if (botonEnviar) {
         botonEnviar.disabled = false;
         botonEnviar.innerText = "Enviar";
       }
 
+      // Ocultar botón nuevo registro
       nuevoRegistro.style.display = "none";
 
+      // Limpiar narrativo
       const narrativoEl = $("narrativo");
       if (narrativoEl) narrativoEl.value = "";
 
+      // Eliminar TODAS las marcas rojas de campos pendientes
       document
         .querySelectorAll(".campo-pendiente")
         .forEach((el) => el.classList.remove("campo-pendiente"));
 
-        actualizarVisibilidadTabaco();
-        actualizarVisibilidadAlcohol();
-        actualizarVisibilidadDiabetes();
-        actualizarVisibilidadHTA();
-        actualizarVisibilidadTipoTratamientoHTA();
-        actualizarVisibilidadAdherenciaHTA();
-        actualizarVisibilidadPHQ2();
-        actualizarVisibilidadGAD2();
+      // Restaurar visibilidad correcta de todos los bloques condicionales
+      actualizarVisibilidadTabaco();
+      actualizarVisibilidadAlcohol();
+      actualizarVisibilidadDiabetes();
+      actualizarVisibilidadHTA();
+      actualizarVisibilidadTipoTratamientoHTA();
 
+      // 🔝 Mover scroll al inicio de la página
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
@@ -1496,11 +1445,13 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Narrativo copiado al portapapeles.");
           })
           .catch(() => {
+            // Fallback
             narrativoEl.select();
             document.execCommand("copy");
             alert("Narrativo copiado al portapapeles.");
           });
       } else {
+        // Fallback para navegadores antiguos
         narrativoEl.select();
         document.execCommand("copy");
         alert("Narrativo copiado al portapapeles.");
