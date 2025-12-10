@@ -647,7 +647,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const p2 = p2Partes.length > 0
-      ? "En relación con conductas de salud y estilo de vida: " + p2Partes.join(" ")
+      ? p2Partes.join(" ")
       : "";
 
     // -------- Antecedentes biomédicos y parámetros actuales --------
@@ -815,7 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const p3 = p3Partes.length > 0
-      ? "En cuanto a antecedentes biomédicos y parámetros actuales: " + p3Partes.join(" ")
+      ? p3Partes.join(" ")
       : "";
 
         // -------- Salud mental --------
@@ -924,7 +924,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (partesSM.length > 0) {
-      p4 = "En el área de salud mental: " + partesSM.join(" ");
+      p4 = partesSM.join(" ");
     }
 
     // -------- Salud general y medicación / polifarmacia --------
@@ -950,50 +950,94 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const p5 = p5Partes.length > 0
-      ? "En relación con salud general y tratamiento farmacológico: " + p5Partes.join(" ")
+      ? p5Partes.join(" ")
       : "";
 
     // -------- Prevención y tamizajes --------
     let p6Partes = [];
 
+    // Doble bacteriana (no tiene "no corresponde")
     const doblBactTxt = mapOrNull(data.Vacunacion_dobleBacteriana, vacunaDobleBactMap);
     if (doblBactTxt) {
       p6Partes.push(`Para vacuna doble bacteriana, refiere ${doblBactTxt}.`);
     }
 
-    const antiGripTxt = mapOrNull(data.Vacunacion_antigripal, vacunaAntigripalMap);
-    if (antiGripTxt) {
-      p6Partes.push(`Respecto de la vacuna antigripal, refiere ${antiGripTxt}.`);
+    // Antigripal: value "4" = No corresponde → NO narrar nada
+    if (data.Vacunacion_antigripal && data.Vacunacion_antigripal !== "4") {
+      const antiGripTxt = mapOrNull(data.Vacunacion_antigripal, vacunaAntigripalMap);
+      if (antiGripTxt) {
+        p6Partes.push(`Respecto de la vacuna antigripal, refiere ${antiGripTxt}.`);
+      }
     }
 
-    const neumococoTxt = mapOrNull(data.Vacunacion_neumococo, vacunaNeumococoMap);
-    if (neumococoTxt) {
-      p6Partes.push(`En relación con la vacunación contra neumococo, refiere ${neumococoTxt}.`);
+    // Neumococo: value "6" = No corresponde → NO narrar
+    if (data.Vacunacion_neumococo && data.Vacunacion_neumococo !== "6") {
+      const neumococoTxt = mapOrNull(data.Vacunacion_neumococo, vacunaNeumococoMap);
+      if (neumococoTxt) {
+        p6Partes.push(`En relación con la vacunación contra neumococo, refiere ${neumococoTxt}.`);
+      }
     }
 
-    const mamografiaTxt = mapOrNull(data.Mamografia, mamografiaMap);
-    if (mamografiaTxt) {
-      p6Partes.push(`En tamizaje mamográfico, refiere ${mamografiaTxt}.`);
+    // Mamografía: value "3" = No corresponde → NO narrar
+    if (data.Mamografia && data.Mamografia !== "3") {
+      const mamografiaTxt = mapOrNull(data.Mamografia, mamografiaMap);
+      if (mamografiaTxt) {
+        p6Partes.push(`En tamizaje mamográfico, refiere ${mamografiaTxt}.`);
+      }
     }
 
-    const papTxt = mapOrNull(data.Papanicolau, papanicolauMap);
-    if (papTxt) {
-      p6Partes.push(`Respecto del Papanicolaou (PAP), refiere ${papTxt}.`);
+    // PAP: value "3" = No corresponde → NO narrar
+    if (data.Papanicolau && data.Papanicolau !== "3") {
+      const papTxt = mapOrNull(data.Papanicolau, papanicolauMap);
+      if (papTxt) {
+        p6Partes.push(`Respecto del Papanicolaou (PAP), refiere ${papTxt}.`);
+      }
     }
 
-    const colorrectalTxt = mapOrNull(data.Cribado_colorrectal, cribadoColorrectalMap);
-    if (colorrectalTxt) {
-      p6Partes.push(`Para cribado de cáncer colorrectal, refiere ${colorrectalTxt}.`);
+    // Cribado colorrectal: value "3" = No corresponde → NO narrar
+    if (data.Cribado_colorrectal && data.Cribado_colorrectal !== "3") {
+      const colorrectalTxt = mapOrNull(data.Cribado_colorrectal, cribadoColorrectalMap);
+      if (colorrectalTxt) {
+        p6Partes.push(`Para cribado de cáncer colorrectal, refiere ${colorrectalTxt}.`);
+      }
     }
 
     const p6 = p6Partes.length > 0
-      ? "En cuanto a medidas preventivas y estudios de tamizaje: " + p6Partes.join(" ")
+      ? p6Partes.join(" ")
       : "";
 
-    // -------- Unimos en párrafos separados --------
-    const parrafos = [p1, p2, p3, p4, p5, p6]
-      .map((p) => (p || "").trim())
-      .filter((p) => p.length > 0);
+    // -------- Unimos en párrafos separados con subtítulos --------
+    const parrafos = [];
+
+    // Párrafo inicial (identificación + vivienda)
+    if ((p1 || "").trim()) {
+      parrafos.push(p1.trim());
+    }
+
+    // Conductas de salud y estilo de vida
+    if ((p2 || "").trim()) {
+      parrafos.push("Conductas de salud y estilo de vida\n" + p2.trim());
+    }
+
+    // Antecedentes biomédicos y parámetros actuales
+    if ((p3 || "").trim()) {
+      parrafos.push("Antecedentes biomédicos y parámetros actuales\n" + p3.trim());
+    }
+
+    // Salud mental
+    if ((p4 || "").trim()) {
+      parrafos.push("Salud mental\n" + p4.trim());
+    }
+
+    // Salud general y tratamiento farmacológico
+    if ((p5 || "").trim()) {
+      parrafos.push("Salud general y tratamiento farmacológico\n" + p5.trim());
+    }
+
+    // Medidas preventivas y estudios de tamizaje
+    if ((p6 || "").trim()) {
+      parrafos.push("Medidas preventivas y estudios de tamizaje\n" + p6.trim());
+    }
 
     return parrafos.join("\n\n");
   }
