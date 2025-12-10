@@ -1071,6 +1071,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // ---- Validación de otros parámetros numéricos con límites superiores ----
+      const limites = [
+        { id: "Peso", max: 300, label: "el peso (kg)" },
+        { id: "Talla", max: 250, label: "la talla (cm)" },
+        { id: "Colesterol_total", max: 2000, label: "el colesterol total" },
+        { id: "HDL", max: 500, label: "el colesterol HDL" },
+        { id: "LDL", max: 1000, label: "el colesterol LDL" },
+        { id: "Trigliceridos", max: 10000, label: "los triglicéridos" },
+        {
+          id: "Cantidad_medicamentos",
+          max: 20,
+          label: "la cantidad de medicamentos",
+        },
+      ];
+
+      for (const campo of limites) {
+        const valStr = valueOf(campo.id);
+        if (valStr === "") continue;
+
+        const n = Number(valStr);
+        if (!Number.isFinite(n) || n < 0 || n > campo.max) {
+          alert(
+            `Por favor, revise ${campo.label}: el valor máximo permitido es ${campo.max}.`
+          );
+          $(campo.id)?.focus();
+          return;
+        }
+      }
+
       // 🔍 Marcar campos pendientes y preguntar si desea continuar
       const pendientes = marcarCamposPendientes(form);
 
