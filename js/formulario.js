@@ -23,6 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectDiagnosticoDiabetes = $("Diagnostico_diabetes");
   const bloqueTratamientoDiabetes = $("bloque_tratamiento_diabetes");
   const bloqueHbA1c = $("bloque_hba1c");
+  const selectTieneHbA1c = $("Tiene_hba1c");
+  const bloqueValorHbA1c = $("bloque_valor_hba1c");
+  const inputHbA1c = $("Hemoglobina_glicosilada");
 
   const selectFuma = $("Fuma_actualmente");
   const bloqueTabacoExtra = $("bloque_tabaco_extra");
@@ -32,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectDiagnosticoHTA = document.getElementById("Diagnostico_HTA");
   const bloqueHTAExtra = document.getElementById("bloque_hta_extra");
   const selectTratamientoHTA = document.getElementById("Tratamiento_HTA");
-  const bloqueAdherenciaHTA = document.getElementById("bloque_adherencia_HTA");
 
   const btnCopiarNarrativo = $("btnCopiarNarrativo");
 
@@ -170,6 +172,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function actualizarVisibilidadHbA1c() {
+    const tiene = valueOf("Tiene_hba1c");
+
+    if (tiene === "1") {
+      // Sí → mostrar el campo de valor
+      if (bloqueValorHbA1c) bloqueValorHbA1c.style.display = "block";
+    } else {
+      // No / vacío → ocultar y limpiar
+      if (bloqueValorHbA1c) bloqueValorHbA1c.style.display = "none";
+      if (inputHbA1c) inputHbA1c.value = "";
+    }
+  }
+  
   function actualizarVisibilidadDiabetes() {
     const diag = valueOf("Diagnostico_diabetes");
 
@@ -177,13 +192,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // Tiene diagnóstico
       if (bloqueTratamientoDiabetes) bloqueTratamientoDiabetes.style.display = "block";
       if (bloqueHbA1c) bloqueHbA1c.style.display = "block";
+      // 👇 NUEVO: muestra/oculta el campo del valor según "Tiene_hba1c"
+      actualizarVisibilidadHbA1c();
     } else {
       // No tiene diagnóstico → ocultamos todo lo relacionado
       if (bloqueTratamientoDiabetes) bloqueTratamientoDiabetes.style.display = "none";
       if (bloqueHbA1c) bloqueHbA1c.style.display = "none";
 
       if (selectTratamientoDiabetes) selectTratamientoDiabetes.value = "";
-      if ($("Hemoglobina_glicosilada")) $("Hemoglobina_glicosilada").value = "";
+      // 👇 NUEVO: resetear la pregunta "Tiene_hba1c" + ocultar valor + limpiar input
+      if (selectTieneHbA1c) selectTieneHbA1c.value = "";
+      if (bloqueValorHbA1c) bloqueValorHbA1c.style.display = "none";
+      if (inputHbA1c) inputHbA1c.value = "";
 
       // Y también ocultamos tipos de tratamiento
       if (bloqueTipoTratamiento) bloqueTipoTratamiento.style.display = "none";
@@ -204,10 +224,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (selectDiagnosticoDiabetes) {
     selectDiagnosticoDiabetes.addEventListener("change", actualizarVisibilidadDiabetes);
   }
+  if (selectTieneHbA1c) {
+  selectTieneHbA1c.addEventListener("change", actualizarVisibilidadHbA1c);
+  }
 
   // Estado inicial coherente
   actualizarVisibilidadTipoTratamiento();
   actualizarVisibilidadDiabetes();
+  actualizarVisibilidadHbA1c();
 
   // ==================== Conductas: Hipertension arterial ====================
   function actualizarVisibilidadHTA() {
@@ -222,7 +246,6 @@ document.addEventListener("DOMContentLoaded", () => {
       bloque.style.display = "none";
 
       document.getElementById("Tratamiento_HTA").value = "";
-      document.getElementById("Adherencia_tratamiento_HTA").value = "";
 
       // Además, ocultamos y reseteamos tipos de tratamiento HTA
       actualizarVisibilidadTipoTratamientoHTA();
@@ -266,22 +289,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   actualizarVisibilidadHTA();
   actualizarVisibilidadTipoTratamientoHTA();
-
-  function actualizarVisibilidadAdherenciaHTA() {
-    const valor = (selectTratamientoHTA?.value || "").trim();
-
-    if (valor === "1") {
-      // Sí recibe tratamiento → mostrar
-      bloqueAdherenciaHTA.style.display = "block";
-    } else {
-      // No recibe → ocultar y resetear
-      bloqueAdherenciaHTA.style.display = "none";
-      document.getElementById("Adherencia_tratamiento_HTA").value = "";
-    }
-  }
-
-  selectTratamientoHTA.addEventListener("change", actualizarVisibilidadAdherenciaHTA);
-  actualizarVisibilidadAdherenciaHTA(); // Estado inicial
 
   // ==================== IMC ====================
   function actualizarIMC() {
@@ -671,6 +678,10 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (data.Tratamiento_diabetes === "2") {
         diab += " Actualmente no recibe tratamiento específico.";
       }
+      // HbA1c: si respondió que NO tiene resultado
+      if (data.__tiene_hba1c === "2") {
+        diab += " El paciente no cuenta con un resultado de hemoglobina glicosilada para registrar.";
+      }
       if (data.Hemoglobina_glicosilada && data.Hemoglobina_glicosilada !== "null") {
         diab += ` Registra como valor más reciente de hemoglobina glicosilada (HbA1c) ${data.Hemoglobina_glicosilada}%.`;
       }
@@ -728,13 +739,6 @@ document.addEventListener("DOMContentLoaded", () => {
           hta += " En tratamiento farmacológico (esquema no especificado).";
         }
 
-        if (data.Adherencia_tratamiento_HTA === "1") {
-          hta += " Refiere adherencia adecuada a la medicación según indicación médica.";
-        } else if (data.Adherencia_tratamiento_HTA === "2") {
-          hta += " Refiere no cumplir adecuadamente con la medicación indicada.";
-        } else if (data.Adherencia_tratamiento_HTA === "3") {
-          hta += " Desconoce o no precisa el grado de adherencia al tratamiento.";
-        }
       } else if (data.Tratamiento_HTA === "2") {
         hta += " Actualmente no recibe tratamiento antihipertensivo.";
       }
@@ -1175,11 +1179,11 @@ document.addEventListener("DOMContentLoaded", () => {
           // Tiene diagnóstico pero NO recibe tratamiento
           Tratamiento_diabetes_env = "2";
 
-          // Todos los tipos = No (2)
-          ttoDieta    = "2";
-          ttoADO      = "2";
-          ttoInsulina = "2";
-          ttoOtro     = "2";
+          // No recibe tratamiento → los tipos NO aplican
+          ttoDieta    = "null";
+          ttoADO      = "null";
+          ttoInsulina = "null";
+          ttoOtro     = "null";
         } else {
           // Tiene diagnóstico, pero no respondió si recibe tratamiento
           Tratamiento_diabetes_env = "null";
@@ -1374,7 +1378,6 @@ document.addEventListener("DOMContentLoaded", () => {
         Tto_hta_BB: ttoHTA_BB,
         Tto_hta_diureticos: ttoHTA_diureticos,
         Tto_hta_otros: ttoHTA_otros,
-        Adherencia_tratamiento_HTA: valueOf("Adherencia_tratamiento_HTA"),
         TA_sistolica: valueOf("TA_sistolica"),
         TA_diastolica: valueOf("TA_diastolica"),
         Peso: valueOf("Peso"),
@@ -1404,6 +1407,8 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       // 🔊 Generar narrativo clínico antes de normalizar valores vacíos
+      data.__tiene_hba1c = valueOf("Tiene_hba1c");
+
       const textoNarrativo = generarNarrativo(data);
       const narrativoEl = $("narrativo");
       if (narrativoEl) {
@@ -1411,6 +1416,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // 🔄 Normalizar valores vacíos a "null"
+      delete data.__tiene_hba1c;
+      
       for (const key in data) {
         if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
 
@@ -1431,7 +1438,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Envío al Apps Script (mismo endpoint que antes)
       fetch(
-        "https://script.google.com/macros/s/AKfycbyrYb3-2c9UGoIAGPi_OMmGYKdO4wR2aloWdpGPckniYPEAbsdyQZeu9fdIWi7DJ16nVw/exec",
+        "https://script.google.com/macros/s/AKfycbyHRT5zNzQd0_zM2Ns1He0CL6IZNyZ_eqlQWe5cBin1ky7fzp2VZ3m_6fkbNdKhzGJ-Ow/exec",
         {
           method: "POST",
           mode: "no-cors",

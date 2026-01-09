@@ -85,7 +85,7 @@
               <option value="" disabled selected hidden>-- Seleccione --</option>
               <option value="1">Varón</option>
               <option value="2">Mujer</option>
-              <option value="3">No binario</option>
+              <option value="3">X (no binario)</option>
               <option value="4">Prefiere no responder</option>
             </select>
 
@@ -302,7 +302,17 @@
               </div>
             </div>
 
-            <div id="bloque_hba1c" style="display:none;">
+         <div id="bloque_hba1c" style="display:none;">
+            <label for="Tiene_hba1c">
+              ¿Tiene un último resultado de hemoglobina glicosilada (HbA1c)?
+            </label>
+            <select id="Tiene_hba1c" name="Tiene_hba1c">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+
+            <div id="bloque_valor_hba1c" style="display:none;">
               <label for="Hemoglobina_glicosilada">
                 ¿Cuál es el valor más reciente de hemoglobina glicosilada (HbA1c)?
               </label>
@@ -318,6 +328,7 @@
                 <span>%</span>
               </div>
             </div>
+          </div>
 
             <label for="Diagnostico_dislipidemia">
               ¿Tiene diagnóstico conocido de dislipidemia?
@@ -398,19 +409,6 @@
                   </label>
                 </div>
               </div>
-
-              <div id="bloque_adherencia_HTA">
-                <label for="Adherencia_tratamiento_HTA">
-                  Toma la medicación según lo indicado por su médico
-                </label>
-                <select id="Adherencia_tratamiento_HTA" name="Adherencia_tratamiento_HTA">
-                  <option value="" disabled selected hidden>-- Seleccione --</option>
-                  <option value="1">Sí</option>
-                  <option value="2">No</option>
-                  <option value="3">No sabe</option>
-                </select>
-              </div>
-            </div>
 
             <div class="grid">
               <div>
@@ -584,7 +582,7 @@
             </select>
 
             <label for="Cribado_colorrectal">
-              ¿Se realizó algún estudio de detección de cáncer colorrectal (FOBT, colonoscopía)?
+              ¿Se realizó algún estudio de detección de cáncer colorrectal (SOMF, colonoscopía)?
             </label>
             <select id="Cribado_colorrectal" name="Cribado_colorrectal">
               <option value="" disabled selected hidden>-- Seleccione --</option>

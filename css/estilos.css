@@ -104,3 +104,13 @@
 #btnCopiarNarrativo {
   margin-top: 0.5rem;
 }
+
+/* Ocultar los títulos de cada dominio (legend) para dejar el formulario "corrido" */
+fieldset > legend {
+  display: none;
+}
+
+/* (Opcional) Ajuste leve por si al ocultar legend queda el primer elemento muy pegado */
+fieldset {
+  padding-top: 1rem;
+}
