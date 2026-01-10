@@ -36,6 +36,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const bloqueHTAExtra = document.getElementById("bloque_hta_extra");
   const selectTratamientoHTA = document.getElementById("Tratamiento_HTA");
 
+  // Dislipemia – Tratamiento colesterol
+  const selectTratamientoColesterol = $("Tratamiento_colesterol");
+  const bloqueTratamientoColesterol = $("bloque_tratamiento_colesterol");
+  const chkColDietaEj = $("Tto_col_dieta_ejercicio");
+  const chkColEstatinas = $("Tto_col_estatinas");
+
   const btnCopiarNarrativo = $("btnCopiarNarrativo");
 
   function marcarCamposPendientes(form) {
@@ -218,6 +224,21 @@ document.addEventListener("DOMContentLoaded", () => {
     actualizarVisibilidadTipoTratamiento();
   }
 
+  // ==================== Dislipemia: tratamiento colesterol ====================
+  function actualizarVisibilidadTratamientoColesterol() {
+    const v = valueOf("Tratamiento_colesterol");
+
+    if (v === "1") {
+      // Sí → mostrar checkboxes
+      if (bloqueTratamientoColesterol) bloqueTratamientoColesterol.style.display = "block";
+    } else {
+      // No / vacío → ocultar y resetear
+      if (bloqueTratamientoColesterol) bloqueTratamientoColesterol.style.display = "none";
+      if (chkColDietaEj) chkColDietaEj.checked = false;
+      if (chkColEstatinas) chkColEstatinas.checked = false;
+    }
+  }
+
   if (selectTratamientoDiabetes) {
     selectTratamientoDiabetes.addEventListener("change", actualizarVisibilidadTipoTratamiento);
   }
@@ -227,11 +248,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (selectTieneHbA1c) {
   selectTieneHbA1c.addEventListener("change", actualizarVisibilidadHbA1c);
   }
+  if (selectTratamientoColesterol) {
+  selectTratamientoColesterol.addEventListener("change", actualizarVisibilidadTratamientoColesterol);
+  }
 
   // Estado inicial coherente
   actualizarVisibilidadTipoTratamiento();
   actualizarVisibilidadDiabetes();
   actualizarVisibilidadHbA1c();
+  actualizarVisibilidadTratamientoColesterol();
 
   // ==================== Conductas: Hipertension arterial ====================
   function actualizarVisibilidadHTA() {
@@ -695,6 +720,30 @@ document.addEventListener("DOMContentLoaded", () => {
       p3Partes.push("Presenta diagnóstico conocido de dislipidemia.");
     } else if (data.Diagnostico_dislipidemia === "2") {
       p3Partes.push("Niega diagnóstico conocido de dislipidemia.");
+    }
+
+    // Tratamiento para el colesterol
+    if (data.Tratamiento_colesterol === "1") {
+      const ttos = [];
+
+      if (data.Tto_col_dieta_ejercicio === "1") {
+        ttos.push("dieta y ejercicio");
+      }
+      if (data.Tto_col_estatinas === "1") {
+        ttos.push("estatinas");
+      }
+
+      if (ttos.length > 0) {
+        p3Partes.push(
+          `Recibe tratamiento para el colesterol con ${ttos.join(" y ")}.`
+        );
+      }
+
+    } else if (
+      data.Tratamiento_colesterol === "2" &&
+      data.Diagnostico_dislipidemia === "1"
+    ) {
+      p3Partes.push("No recibe tratamiento para el colesterol.");
     }
 
     // Perfil lipídico
@@ -1194,6 +1243,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // ==================== Colesterol: codificación para envío ====================
+      const rawTratamientoColesterol = valueOf("Tratamiento_colesterol");
+
+      let Tratamiento_colesterol_env = "null";
+      let ttoColDietaEj = "null";
+      let ttoColEstatinas = "null";
+
+      if (rawTratamientoColesterol === "1") {
+        // Sí recibe tratamiento
+        Tratamiento_colesterol_env = "1";
+
+        // Para cada checkbox: 1 si está tildado, 2 si no
+        ttoColDietaEj = chkColDietaEj?.checked ? "1" : "2";
+        ttoColEstatinas = chkColEstatinas?.checked ? "1" : "2";
+
+        // Exigir al menos una opción
+        if (ttoColDietaEj === "2" && ttoColEstatinas === "2") {
+          alert("Por favor, seleccione al menos una opción de tratamiento para el colesterol.");
+          $("Tipo_tratamiento_colesterol_group")?.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+      } else if (rawTratamientoColesterol === "2") {
+        // No recibe tratamiento
+        Tratamiento_colesterol_env = "2";
+
+        // Tipos NO aplican
+        ttoColDietaEj = "null";
+        ttoColEstatinas = "null";
+      }
+
       // ✅ Tratamiento por HTA: 1=Sí, 2=No, null=No aplica
       const diagHTA = valueOf("Diagnostico_HTA");
       const rawTratamientoHTA = valueOf("Tratamiento_HTA");
@@ -1367,6 +1447,9 @@ document.addEventListener("DOMContentLoaded", () => {
         Tto_diab_otro: ttoOtro,
         Hemoglobina_glicosilada: valueOf("Hemoglobina_glicosilada"),
         Diagnostico_dislipidemia: valueOf("Diagnostico_dislipidemia"),
+        Tratamiento_colesterol: Tratamiento_colesterol_env,
+        Tto_col_dieta_ejercicio: ttoColDietaEj,
+        Tto_col_estatinas: ttoColEstatinas,
         Colesterol_total: valueOf("Colesterol_total"),
         HDL: valueOf("HDL"),
         LDL: valueOf("LDL"),
@@ -1438,7 +1521,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Envío al Apps Script (mismo endpoint que antes)
       fetch(
-        "https://script.google.com/macros/s/AKfycbyHRT5zNzQd0_zM2Ns1He0CL6IZNyZ_eqlQWe5cBin1ky7fzp2VZ3m_6fkbNdKhzGJ-Ow/exec",
+        "https://script.google.com/macros/s/AKfycbzM4SpqSChw4nM5lD8tIk0E4vwzaZaeZ3DpTGZI7ky7IS5ks_Uz_Caff6DgZpJjA4OY2A/exec",
         {
           method: "POST",
           mode: "no-cors",
@@ -1485,6 +1568,7 @@ document.addEventListener("DOMContentLoaded", () => {
       actualizarVisibilidadDiabetes();
       actualizarVisibilidadHTA();
       actualizarVisibilidadTipoTratamientoHTA();
+      actualizarVisibilidadTratamientoColesterol();
 
       // 🔝 Mover scroll al inicio de la página
       window.scrollTo({ top: 0, behavior: "smooth" });

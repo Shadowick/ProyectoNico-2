@@ -340,6 +340,31 @@
               <option value="3">No sabe</option>
             </select>
 
+            <label for="Tratamiento_colesterol">
+              ¿Recibe tratamiento para el colesterol?
+            </label>
+            <select id="Tratamiento_colesterol" name="Tratamiento_colesterol">
+              <option value="" disabled selected hidden>-- Seleccione --</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+
+            <div id="bloque_tratamiento_colesterol" style="display:none;">
+              <small class="checkbox-hint">Seleccione las que correspondan</small>
+
+              <div class="checkbox-group" id="Tipo_tratamiento_colesterol_group">
+                <label>
+                  <input type="checkbox" id="Tto_col_dieta_ejercicio" name="Tto_col_dieta_ejercicio" value="1">
+                  Dieta y ejercicio
+                </label>
+
+                <label>
+                  <input type="checkbox" id="Tto_col_estatinas" name="Tto_col_estatinas" value="1">
+                  Estatinas
+                </label>
+              </div>
+            </div>
+
             <label for="Colesterol_total">
               Colesterol total (valor de laboratorio más reciente)
             </label>
