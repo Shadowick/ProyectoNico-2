@@ -141,27 +141,104 @@
               <option value="2">No</option>
             </select>
 
-            <div id="bloque_tabaco_extra">
-              <label for="Fuma_producto">¿Qué producto fuma?</label>
-              <select id="Fuma_producto" name="Fuma_producto">
+            <!-- Si NO fuma actualmente -->
+            <div id="bloque_fumo_pasado" style="display:none;">
+              <label for="Fumo_pasado">
+                ¿Ha fumado alguna vez en el pasado? (hace más de un año)
+              </label>
+              <select id="Fumo_pasado" name="Fumo_pasado">
                 <option value="" disabled selected hidden>-- Seleccione --</option>
-                <option value="1">Cigarrillo fabricado</option>
-                <option value="2">Cigarrillo armado</option>
-                <option value="3">Cigarrillo con cápsula</option>
-                <option value="4">Cigarrillo electrónico o vapeo</option>
-                <option value="5">Tabaco calentado</option>
-                <option value="6">Bolsa de nicotina</option>
-                <option value="7">Otro</option>
+                <option value="1">Sí</option>
+                <option value="2">No</option>
               </select>
 
-              <label for="Frecuencia_fumador">
-                ¿Fuma diariamente o solo ocasionalmente?
-              </label>
+              <div id="bloque_detalle_fumo_pasado" style="display:none;">
+                <label for="Anios_fumo_pasado">¿Cuántos años fumó?</label>
+                <input
+                  type="number"
+                  id="Anios_fumo_pasado"
+                  name="Anios_fumo_pasado"
+                  min="0"
+                  max="100"
+                  step="1"
+                />
+
+                <label for="Cigarrillos_dia_pasado">
+                  ¿Cuántos cigarrillos por día en promedio?
+                </label>
+                <input
+                  type="number"
+                  id="Cigarrillos_dia_pasado"
+                  name="Cigarrillos_dia_pasado"
+                  min="0"
+                  max="200"
+                  step="1"
+                />
+              </div>
+            </div>
+
+            <!-- Si SÍ fuma actualmente -->
+            <div id="bloque_tabaco_actual" style="display:none;">
+              <label>¿Qué producto fuma?</label>
+              <small class="checkbox-hint">Seleccione las que correspondan</small>
+
+              <div class="checkbox-group" id="Tipo_tabaco_group">
+                <label>
+                  <input type="checkbox" id="Tabaco_cig_fabricado" name="Tabaco_cig_fabricado" value="1" />
+                  Cigarrillo fabricado
+                </label>
+
+                <label>
+                  <input type="checkbox" id="Tabaco_cig_armado" name="Tabaco_cig_armado" value="2" />
+                  Cigarrillo armado
+                </label>
+
+                <label>
+                  <input type="checkbox" id="Tabaco_capsula" name="Tabaco_capsula" value="3" />
+                  Cigarrillo con cápsula
+                </label>
+
+                <label>
+                  <input type="checkbox" id="Tabaco_vapeo" name="Tabaco_vapeo" value="4" />
+                  Cigarrillo electrónico o vapeo
+                </label>
+
+                <label>
+                  <input type="checkbox" id="Tabaco_calentado" name="Tabaco_calentado" value="5" />
+                  Tabaco calentado
+                </label>
+
+                <label>
+                  <input type="checkbox" id="Tabaco_bolsa_nicotina" name="Tabaco_bolsa_nicotina" value="6" />
+                  Bolsa de nicotina
+                </label>
+
+                <label>
+                  <input type="checkbox" id="Tabaco_otro" name="Tabaco_otro" value="7" />
+                  Otro
+                </label>
+              </div>
+
+              <label for="Frecuencia_fumador">Frecuencia</label>
               <select id="Frecuencia_fumador" name="Frecuencia_fumador">
                 <option value="" disabled selected hidden>-- Seleccione --</option>
                 <option value="1">Diariamente</option>
-                <option value="2">Ocasionalmente</option>
+                <option value="2">No diariamente</option>
               </select>
+
+              <div id="bloque_cigarrillos_dia_actual" style="display:none;">
+                <label for="Cigarrillos_dia_actual">
+                  ¿Cuántos cigarrillos fuma por día en promedio?
+                </label>
+                <input
+                  type="number"
+                  id="Cigarrillos_dia_actual"
+                  name="Cigarrillos_dia_actual"
+                  min="0"
+                  max="200"
+                  step="1"
+                />
+              </div>
 
               <label for="Edad_inicio_tabaco">¿A qué edad comenzó a fumar con regularidad?</label>
               <input

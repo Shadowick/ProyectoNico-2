@@ -28,7 +28,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputHbA1c = $("Hemoglobina_glicosilada");
 
   const selectFuma = $("Fuma_actualmente");
-  const bloqueTabacoExtra = $("bloque_tabaco_extra");
+  // ===== Tabaquismo (nuevo flujo) =====
+  const bloqueFumoPasado = $("bloque_fumo_pasado");
+  const selectFumoPasado = $("Fumo_pasado");
+  const bloqueDetalleFumoPasado = $("bloque_detalle_fumo_pasado");
+  const inputAniosFumoPasado = $("Anios_fumo_pasado");
+  const inputCigsDiaPasado = $("Cigarrillos_dia_pasado");
+
+  const bloqueTabacoActual = $("bloque_tabaco_actual");
+
+  // Checkboxes producto tabaco (actual)
+  const chkTabacoFab = $("Tabaco_cig_fabricado");
+  const chkTabacoArm = $("Tabaco_cig_armado");
+  const chkTabacoCaps = $("Tabaco_capsula");
+  const chkTabacoVapeo = $("Tabaco_vapeo");
+  const chkTabacoCal = $("Tabaco_calentado");
+  const chkTabacoBolsa = $("Tabaco_bolsa_nicotina");
+  const chkTabacoOtro = $("Tabaco_otro");
+
+  // Frecuencia + cigarrillos/día actual
+  const selectFrecuenciaFumador = $("Frecuencia_fumador");
+  const bloqueCigsDiaActual = $("bloque_cigarrillos_dia_actual");
+  const inputCigsDiaActual = $("Cigarrillos_dia_actual");
+
   const selectFrecuenciaAlcohol = $("Frecuencia_alcohol");
   const bloqueAlcoholExtra = $("bloque_alcohol_extra");
 
@@ -138,25 +160,103 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ==================== Conductas: Tabaco ====================
   function actualizarVisibilidadTabaco() {
-    const v = valueOf("Fuma_actualmente");
+    const fuma = valueOf("Fuma_actualmente");
+
+    const ocultarActual = () => {
+      if (bloqueTabacoActual) bloqueTabacoActual.style.display = "none";
+
+      // Reset checkboxes
+      [
+        chkTabacoFab,
+        chkTabacoArm,
+        chkTabacoCaps,
+        chkTabacoVapeo,
+        chkTabacoCal,
+        chkTabacoBolsa,
+        chkTabacoOtro,
+      ].forEach((chk) => {
+        if (chk) chk.checked = false;
+      });
+
+      // Reset frecuencia y cigarrillos/día actual
+      if (selectFrecuenciaFumador) selectFrecuenciaFumador.value = "";
+      if (bloqueCigsDiaActual) bloqueCigsDiaActual.style.display = "none";
+      if (inputCigsDiaActual) inputCigsDiaActual.value = "";
+
+      // Reset otros campos del fumador actual (se mantienen IDs existentes)
+      const edadInicio = $("Edad_inicio_tabaco");
+      const intentoDejar = $("Intento_dejar_tabaco");
+      if (edadInicio) edadInicio.value = "";
+      if (intentoDejar) intentoDejar.value = "";
+    };
+
+    const ocultarPasado = () => {
+      if (bloqueFumoPasado) bloqueFumoPasado.style.display = "none";
+      if (selectFumoPasado) selectFumoPasado.value = "";
+      if (bloqueDetalleFumoPasado) bloqueDetalleFumoPasado.style.display = "none";
+      if (inputAniosFumoPasado) inputAniosFumoPasado.value = "";
+      if (inputCigsDiaPasado) inputCigsDiaPasado.value = "";
+    };
+
+    if (fuma === "1") {
+      // Sí fuma actualmente
+      ocultarPasado();
+      if (bloqueTabacoActual) bloqueTabacoActual.style.display = "block";
+
+      // Ajustar visibilidad de cigarrillos/día según frecuencia
+      actualizarVisibilidadCigarrillosDiaActual();
+
+    } else if (fuma === "2") {
+      // No fuma actualmente
+      ocultarActual();
+      if (bloqueFumoPasado) bloqueFumoPasado.style.display = "block";
+
+      // Detalle pasado depende de "Fumo_pasado"
+      actualizarVisibilidadFumoPasado();
+
+    } else {
+      // No respondió: ocultar todo
+      ocultarActual();
+      ocultarPasado();
+    }
+  }
+
+  function actualizarVisibilidadCigarrillosDiaActual() {
+    const freq = valueOf("Frecuencia_fumador");
+
+    if (freq === "1") {
+      // Diariamente
+      if (bloqueCigsDiaActual) bloqueCigsDiaActual.style.display = "block";
+    } else {
+      // No diariamente / vacío
+      if (bloqueCigsDiaActual) bloqueCigsDiaActual.style.display = "none";
+      if (inputCigsDiaActual) inputCigsDiaActual.value = "";
+    }
+  }
+
+  function actualizarVisibilidadFumoPasado() {
+    const v = valueOf("Fumo_pasado");
 
     if (v === "1") {
-      // Sí fuma → mostramos todo
-      if (bloqueTabacoExtra) bloqueTabacoExtra.style.display = "block";
+      // Sí fumó en el pasado
+      if (bloqueDetalleFumoPasado) bloqueDetalleFumoPasado.style.display = "block";
     } else {
-      // No fuma → ocultamos y reseteamos campos
-      if (bloqueTabacoExtra) bloqueTabacoExtra.style.display = "none";
-
-      if ($("Fuma_producto")) $("Fuma_producto").value = "";
-      if ($("Frecuencia_fumador")) $("Frecuencia_fumador").value = "";
-      if ($("Edad_inicio_tabaco")) $("Edad_inicio_tabaco").value = "";
-      if ($("Intento_dejar_tabaco")) $("Intento_dejar_tabaco").value = "";
+      // No / vacío
+      if (bloqueDetalleFumoPasado) bloqueDetalleFumoPasado.style.display = "none";
+      if (inputAniosFumoPasado) inputAniosFumoPasado.value = "";
+      if (inputCigsDiaPasado) inputCigsDiaPasado.value = "";
     }
   }
 
   if (selectFuma) {
     selectFuma.addEventListener("change", actualizarVisibilidadTabaco);
     actualizarVisibilidadTabaco();
+  }
+  if (selectFrecuenciaFumador) {
+  selectFrecuenciaFumador.addEventListener("change", actualizarVisibilidadCigarrillosDiaActual);
+  }
+  if (selectFumoPasado) {
+  selectFumoPasado.addEventListener("change", actualizarVisibilidadFumoPasado);
   }
 
   // ==================== Diabetes: tipo de tratamiento ====================
@@ -253,6 +353,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Estado inicial coherente
+  actualizarVisibilidadTabaco();
+  actualizarVisibilidadFumoPasado();
+  actualizarVisibilidadCigarrillosDiaActual();
   actualizarVisibilidadTipoTratamiento();
   actualizarVisibilidadDiabetes();
   actualizarVisibilidadHbA1c();
@@ -593,36 +696,79 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------- Conductas de salud (tabaco, alcohol, actividad física) --------
     let p2Partes = [];
 
-    // Tabaquismo
+    // Tabaquismo (nuevo flujo)
     if (data.Fuma_actualmente === "1") {
-      const productoMap = {
-        "1": "cigarrillos fabricados",
-        "2": "cigarrillos armados",
-        "3": "cigarrillos con cápsula",
-        "4": "cigarrillo electrónico o vapeo",
-        "5": "tabaco calentado",
-        "6": "bolsas de nicotina",
-        "7": "otros productos de tabaco"
-      };
-      const productoTxt = mapOrNull(data.Fuma_producto, productoMap) || "productos de tabaco";
-      const frecuenciaTxt = data.Frecuencia_fumador === "1" ? "de manera diaria" :
-        data.Frecuencia_fumador === "2" ? "en forma ocasional" : "";
+      // Fuma actualmente
+      const productos = [];
 
-      let tabaquismo = `Refiere consumo actual de ${productoTxt}`;
-      if (frecuenciaTxt) tabaquismo += `, ${frecuenciaTxt}`;
-      if (data.Edad_inicio_tabaco && data.Edad_inicio_tabaco !== "null") {
-        tabaquismo += `, con inicio del consumo regular a los ${data.Edad_inicio_tabaco} años`;
-      }
-      if (data.Intento_dejar_tabaco === "1") {
-        tabaquismo += `. Refiere intentos de cesación tabáquica en los últimos 12 meses.`;
-      } else if (data.Intento_dejar_tabaco === "2") {
-        tabaquismo += `. Niega intentos de cesación tabáquica en los últimos 12 meses.`;
+      if (data.Tabaco_cig_fabricado === "1") productos.push("cigarrillo fabricado");
+      if (data.Tabaco_cig_armado === "1") productos.push("cigarrillo armado");
+      if (data.Tabaco_capsula === "1") productos.push("cigarrillo con cápsula");
+      if (data.Tabaco_vapeo === "1") productos.push("cigarrillo electrónico o vapeo");
+      if (data.Tabaco_calentado === "1") productos.push("tabaco calentado");
+      if (data.Tabaco_bolsa_nicotina === "1") productos.push("bolsa de nicotina");
+      if (data.Tabaco_otro === "1") productos.push("otro producto de tabaco");
+
+      let tabaquismo = "Refiere consumo actual de productos de tabaco";
+
+      if (productos.length > 0) {
+        tabaquismo += ` (${productos.join(", ")}).`;
       } else {
         tabaquismo += ".";
       }
+
+      // Frecuencia + cigarrillos/día si diario
+      if (data.Frecuencia_fumador === "1") {
+        tabaquismo += " Fuma diariamente";
+        if (data.Cigarrillos_dia_actual && data.Cigarrillos_dia_actual !== "null") {
+          tabaquismo += ` (promedio ${data.Cigarrillos_dia_actual} cigarrillos/día).`;
+        } else {
+          tabaquismo += ".";
+        }
+      } else if (data.Frecuencia_fumador === "2") {
+        tabaquismo += " Fuma no diariamente.";
+      }
+
+      // Edad de inicio
+      if (data.Edad_inicio_tabaco && data.Edad_inicio_tabaco !== "null") {
+        tabaquismo += ` Inició a los ${data.Edad_inicio_tabaco} años.`;
+      }
+
+      // Intentos de cesación
+      if (data.Intento_dejar_tabaco === "1") {
+        tabaquismo += " Refiere intentos de cesación tabáquica en los últimos 12 meses.";
+      } else if (data.Intento_dejar_tabaco === "2") {
+        tabaquismo += " Niega intentos de cesación tabáquica en los últimos 12 meses.";
+      }
+
       p2Partes.push(tabaquismo);
+
     } else if (data.Fuma_actualmente === "2") {
-      p2Partes.push("Niega consumo actual de tabaco.");
+      // No fuma actualmente → mirar pasado
+      if (data.Fumo_pasado === "1") {
+        let tabaquismo = "No fuma actualmente y refiere haber fumado en el pasado.";
+
+        const anios = data.Anios_fumo_pasado;
+        const cigs = data.Cigarrillos_dia_pasado;
+
+        if (anios && anios !== "null") {
+          tabaquismo += ` Fumó durante ${anios} años`;
+          if (cigs && cigs !== "null") {
+            tabaquismo += `, con un promedio de ${cigs} cigarrillos/día.`;
+          } else {
+            tabaquismo += ".";
+          }
+        } else if (cigs && cigs !== "null") {
+          tabaquismo += ` Promedio histórico: ${cigs} cigarrillos/día.`;
+        }
+
+        p2Partes.push(tabaquismo);
+
+      } else if (data.Fumo_pasado === "2") {
+        p2Partes.push("No fuma actualmente y niega antecedente de tabaquismo.");
+      } else {
+        p2Partes.push("No fuma actualmente.");
+      }
     }
 
         // Alcohol
@@ -1274,6 +1420,104 @@ document.addEventListener("DOMContentLoaded", () => {
         ttoColEstatinas = "null";
       }
 
+      // ==================== Tabaco: codificación para envío ====================
+      const rawFumaActualmente = valueOf("Fuma_actualmente");
+      const rawFumoPasado = valueOf("Fumo_pasado");
+
+      // Variables nuevas (se envían al Sheet)
+      let Fumo_pasado_env = "null";
+      let Anios_fumo_pasado_env = "null";
+      let Cigarrillos_dia_pasado_env = "null";
+      let Cigarrillos_dia_actual_env = "null";
+
+      // Producto tabaco (7 columnas binarias)
+      let Tabaco_cig_fabricado_env = "null";
+      let Tabaco_cig_armado_env = "null";
+      let Tabaco_capsula_env = "null";
+      let Tabaco_vapeo_env = "null";
+      let Tabaco_calentado_env = "null";
+      let Tabaco_bolsa_nicotina_env = "null";
+      let Tabaco_otro_env = "null";
+
+      // Campos existentes del flujo “fumador actual”
+      let Frecuencia_fumador_env = "null";
+      let Edad_inicio_tabaco_env = "null";
+      let Intento_dejar_tabaco_env = "null";
+
+      if (rawFumaActualmente === "1") {
+        // Fuma actualmente
+        Frecuencia_fumador_env = valueOf("Frecuencia_fumador") || "null";
+        Edad_inicio_tabaco_env = valueOf("Edad_inicio_tabaco") || "null";
+        Intento_dejar_tabaco_env = valueOf("Intento_dejar_tabaco") || "null";
+
+        // Cada checkbox: 1 si tildado, 2 si no tildado (solo aplica si fuma actualmente)
+        Tabaco_cig_fabricado_env = chkTabacoFab?.checked ? "1" : "2";
+        Tabaco_cig_armado_env = chkTabacoArm?.checked ? "1" : "2";
+        Tabaco_capsula_env = chkTabacoCaps?.checked ? "1" : "2";
+        Tabaco_vapeo_env = chkTabacoVapeo?.checked ? "1" : "2";
+        Tabaco_calentado_env = chkTabacoCal?.checked ? "1" : "2";
+        Tabaco_bolsa_nicotina_env = chkTabacoBolsa?.checked ? "1" : "2";
+        Tabaco_otro_env = chkTabacoOtro?.checked ? "1" : "2";
+
+        // Validación: si fuma actualmente, exigir al menos un producto
+        const todosNo =
+          Tabaco_cig_fabricado_env === "2" &&
+          Tabaco_cig_armado_env === "2" &&
+          Tabaco_capsula_env === "2" &&
+          Tabaco_vapeo_env === "2" &&
+          Tabaco_calentado_env === "2" &&
+          Tabaco_bolsa_nicotina_env === "2" &&
+          Tabaco_otro_env === "2";
+
+        if (todosNo) {
+          alert("Por favor, seleccione al menos un producto de tabaco.");
+          $("Tipo_tabaco_group")?.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        // Cigarrillos/día actual: solo si Diariamente (1)
+        if (Frecuencia_fumador_env === "1") {
+          Cigarrillos_dia_actual_env = valueOf("Cigarrillos_dia_actual") || "null";
+        } else {
+          Cigarrillos_dia_actual_env = "null";
+        }
+
+        // Flujo pasado NO aplica
+        Fumo_pasado_env = "null";
+        Anios_fumo_pasado_env = "null";
+        Cigarrillos_dia_pasado_env = "null";
+
+      } else if (rawFumaActualmente === "2") {
+        // No fuma actualmente
+        Fumo_pasado_env = rawFumoPasado || "null";
+
+        if (rawFumoPasado === "1") {
+          Anios_fumo_pasado_env = valueOf("Anios_fumo_pasado") || "null";
+          Cigarrillos_dia_pasado_env = valueOf("Cigarrillos_dia_pasado") || "null";
+        } else {
+          Anios_fumo_pasado_env = "null";
+          Cigarrillos_dia_pasado_env = "null";
+        }
+
+        // Flujo de fumador actual NO aplica
+        Frecuencia_fumador_env = "null";
+        Edad_inicio_tabaco_env = "null";
+        Intento_dejar_tabaco_env = "null";
+        Cigarrillos_dia_actual_env = "null";
+
+        // Productos NO aplican
+        Tabaco_cig_fabricado_env = "null";
+        Tabaco_cig_armado_env = "null";
+        Tabaco_capsula_env = "null";
+        Tabaco_vapeo_env = "null";
+        Tabaco_calentado_env = "null";
+        Tabaco_bolsa_nicotina_env = "null";
+        Tabaco_otro_env = "null";
+
+      } else {
+        // No respondió Fuma_actualmente → todo null
+      }
+     
       // ✅ Tratamiento por HTA: 1=Sí, 2=No, null=No aplica
       const diagHTA = valueOf("Diagnostico_HTA");
       const rawTratamientoHTA = valueOf("Tratamiento_HTA");
@@ -1421,10 +1665,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Conductas: Tabaquismo
         Fuma_actualmente: valueOf("Fuma_actualmente"),
-        Fuma_producto: valueOf("Fuma_producto"),
-        Frecuencia_fumador: valueOf("Frecuencia_fumador"),
-        Edad_inicio_tabaco: valueOf("Edad_inicio_tabaco"),
-        Intento_dejar_tabaco: valueOf("Intento_dejar_tabaco"),
+        Frecuencia_fumador: Frecuencia_fumador_env,
+        Edad_inicio_tabaco: Edad_inicio_tabaco_env,
+        Intento_dejar_tabaco: Intento_dejar_tabaco_env,
+
+        Fumo_pasado: Fumo_pasado_env,
+        Anios_fumo_pasado: Anios_fumo_pasado_env,
+        Cigarrillos_dia_pasado: Cigarrillos_dia_pasado_env,
+        Cigarrillos_dia_actual: Cigarrillos_dia_actual_env,
+
+        Tabaco_cig_fabricado: Tabaco_cig_fabricado_env,
+        Tabaco_cig_armado: Tabaco_cig_armado_env,
+        Tabaco_capsula: Tabaco_capsula_env,
+        Tabaco_vapeo: Tabaco_vapeo_env,
+        Tabaco_calentado: Tabaco_calentado_env,
+        Tabaco_bolsa_nicotina: Tabaco_bolsa_nicotina_env,
+        Tabaco_otro: Tabaco_otro_env,
 
         // Conductas: Alcohol
         Frecuencia_alcohol: valueOf("Frecuencia_alcohol"),
@@ -1521,7 +1777,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Envío al Apps Script (mismo endpoint que antes)
       fetch(
-        "https://script.google.com/macros/s/AKfycbzM4SpqSChw4nM5lD8tIk0E4vwzaZaeZ3DpTGZI7ky7IS5ks_Uz_Caff6DgZpJjA4OY2A/exec",
+        "https://script.google.com/macros/s/AKfycbzgvAzZLZHZmFTQANAPx3AS6-_SbkEQ3q4bRMTsNzXYyqHTpFw4craC0l60yg39gZO7Vg/exec",
         {
           method: "POST",
           mode: "no-cors",
@@ -1564,6 +1820,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Restaurar visibilidad correcta de todos los bloques condicionales
       actualizarVisibilidadTabaco();
+      actualizarVisibilidadCigarrillosDiaActual();
+      actualizarVisibilidadFumoPasado();
       actualizarVisibilidadAlcohol();
       actualizarVisibilidadDiabetes();
       actualizarVisibilidadHTA();
