@@ -64,6 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const chkColDietaEj = $("Tto_col_dieta_ejercicio");
   const chkColEstatinas = $("Tto_col_estatinas");
 
+  // Actividad física (nuevo)
+  const selectActividad150 = $("Actividad150min");
+  const bloqueMotivoNoActividad = $("bloque_motivo_no_actividad");
+  const selectMotivoNoActividad = $("Motivo_no_actividad");
+
   const btnCopiarNarrativo = $("btnCopiarNarrativo");
 
   function marcarCamposPendientes(form) {
@@ -156,6 +161,25 @@ document.addEventListener("DOMContentLoaded", () => {
   if (selectFrecuenciaAlcohol) {
     selectFrecuenciaAlcohol.addEventListener("change", actualizarVisibilidadAlcohol);
     actualizarVisibilidadAlcohol();
+  }
+
+  // ==================== Conductas: Actividad física ====================
+  function actualizarVisibilidadActividadFisica() {
+    const v = valueOf("Actividad150min");
+
+    if (v === "2") {
+      // NO → mostrar motivo
+      if (bloqueMotivoNoActividad) bloqueMotivoNoActividad.style.display = "block";
+    } else {
+      // SÍ o vacío → ocultar y limpiar motivo
+      if (bloqueMotivoNoActividad) bloqueMotivoNoActividad.style.display = "none";
+      if (selectMotivoNoActividad) selectMotivoNoActividad.value = "";
+    }
+  }
+
+  if (selectActividad150) {
+    selectActividad150.addEventListener("change", actualizarVisibilidadActividadFisica);
+    actualizarVisibilidadActividadFisica(); // estado inicial coherente
   }
 
   // ==================== Conductas: Tabaco ====================
@@ -360,6 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
   actualizarVisibilidadDiabetes();
   actualizarVisibilidadHbA1c();
   actualizarVisibilidadTratamientoColesterol();
+  actualizarVisibilidadActividadFisica();
 
   // ==================== Conductas: Hipertension arterial ====================
   function actualizarVisibilidadHTA() {
@@ -536,20 +561,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "2": "mensualmente",
       "3": "semanalmente",
       "4": "a diario o casi a diario"
-    };
-
-    const actividad150Map = {
-      "1": "realiza al menos 150 minutos semanales de actividad física moderada o intensa",
-      "2": "no alcanza los 150 minutos semanales de actividad física moderada o intensa"
-    };
-
-    const motivoActividadMap = {
-      "1": "principalmente por motivos de salud",
-      "2": "principalmente por motivos laborales",
-      "3": "principalmente con fines recreativos",
-      "4": "refiere falta de tiempo",
-      "5": "refiere limitaciones físicas",
-      "6": "refiere que no le interesa realizar actividad física"
     };
 
     const phqGadFrecuenciaMap = {
@@ -811,16 +822,39 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Actividad física
-    if (data.Actividad150min && data.Actividad150min !== "null") {
-      let actTxt = mapOrNull(data.Actividad150min, actividad150Map) || "";
-      const motivoTxt = mapOrNull(data.Motivo_actividad, motivoActividadMap);
+    // Actividad física (nuevo)
+    if (data.Actividad150min === "1") {
+      p2Partes.push(
+        "Refiere realizar al menos 150 minutos semanales de actividad física, cumpliendo con las recomendaciones de salud."
+      );
+    } else if (data.Actividad150min === "2") {
+      // mapeo de motivo (solo si respondió NO)
+      const motivoMap = {
+        "1": "falta de tiempo",
+        "2": "dolor, problemas de salud o limitaciones físicas",
+        "3": "cansancio o falta de energía",
+        "4": "falta de interés",
+        "5": "barreras ambientales, como falta de lugar, inseguridad o condiciones climáticas",
+        "6": "desconocimiento sobre qué tipo de actividad realizar o cómo iniciarla"
+      };
 
-      if (actTxt) {
-        let actividad = `En cuanto a actividad física, refiere que ${actTxt}`;
-        if (motivoTxt) actividad += `, ${motivoTxt}.`;
-        else actividad += ".";
-        p2Partes.push(actividad);
+      const motivo = data.Motivo_no_actividad;
+
+      if (motivo === "1") {
+        p2Partes.push("El paciente no realiza actividad física en la cantidad recomendada, refiriendo falta de tiempo como principal barrera.");
+      } else if (motivo === "2") {
+        p2Partes.push("El paciente no realiza actividad física debido a dolor, problemas de salud o limitaciones físicas.");
+      } else if (motivo === "3") {
+        p2Partes.push("El paciente no realiza actividad física adecuada por cansancio o falta de energía.");
+      } else if (motivo === "4") {
+        p2Partes.push("El paciente no realiza actividad física debido a falta de interés.");
+      } else if (motivo === "5") {
+        p2Partes.push("El paciente no realiza actividad física debido a barreras ambientales, como falta de lugar, inseguridad o condiciones climáticas.");
+      } else if (motivo === "6") {
+        p2Partes.push("El paciente no realiza actividad física por desconocimiento sobre qué tipo de actividad realizar o cómo iniciarla.");
+      } else {
+        // si puso NO pero no eligió motivo
+        p2Partes.push("El paciente no realiza actividad física en la cantidad recomendada.");
       }
     }
 
@@ -1205,38 +1239,15 @@ document.addEventListener("DOMContentLoaded", () => {
       ? p6Partes.join(" ")
       : "";
 
-    // -------- Unimos en párrafos separados con subtítulos --------
+    // -------- Unimos en párrafos SIN subtítulos --------
     const parrafos = [];
 
-    // Párrafo inicial (identificación + vivienda)
-    if ((p1 || "").trim()) {
-      parrafos.push(p1.trim());
-    }
-
-    // Conductas de salud y estilo de vida
-    if ((p2 || "").trim()) {
-      parrafos.push("Conductas de salud y estilo de vida\n" + p2.trim());
-    }
-
-    // Antecedentes biomédicos y parámetros actuales
-    if ((p3 || "").trim()) {
-      parrafos.push("Antecedentes biomédicos y parámetros actuales\n" + p3.trim());
-    }
-
-    // Salud mental
-    if ((p4 || "").trim()) {
-      parrafos.push("Salud mental\n" + p4.trim());
-    }
-
-    // Salud general y tratamiento farmacológico
-    if ((p5 || "").trim()) {
-      parrafos.push("Salud general y tratamiento farmacológico\n" + p5.trim());
-    }
-
-    // Medidas preventivas y estudios de tamizaje
-    if ((p6 || "").trim()) {
-      parrafos.push("Medidas preventivas y estudios de tamizaje\n" + p6.trim());
-    }
+    if ((p1 || "").trim()) parrafos.push(p1.trim());
+    if ((p2 || "").trim()) parrafos.push(p2.trim());
+    if ((p3 || "").trim()) parrafos.push(p3.trim());
+    if ((p4 || "").trim()) parrafos.push(p4.trim());
+    if ((p5 || "").trim()) parrafos.push(p5.trim());
+    if ((p6 || "").trim()) parrafos.push(p6.trim());
 
     return parrafos.join("\n\n");
   }
@@ -1692,7 +1703,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Conductas: Actividad física
         Actividad150min: valueOf("Actividad150min"),
-        Motivo_actividad: valueOf("Motivo_actividad"),
+        Motivo_no_actividad: valueOf("Motivo_no_actividad"),
 
         // Biomédico
         Diagnostico_diabetes: valueOf("Diagnostico_diabetes"),
@@ -1777,7 +1788,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Envío al Apps Script (mismo endpoint que antes)
       fetch(
-        "https://script.google.com/macros/s/AKfycbzgvAzZLZHZmFTQANAPx3AS6-_SbkEQ3q4bRMTsNzXYyqHTpFw4craC0l60yg39gZO7Vg/exec",
+        "https://script.google.com/macros/s/AKfycbytf0x4Uyv91ejfAdGsd4-e-c7yktfXpDclZNwW4-CDxnIW-amunFzagsZRmsL5EwB3vQ/exec",
         {
           method: "POST",
           mode: "no-cors",
@@ -1827,6 +1838,7 @@ document.addEventListener("DOMContentLoaded", () => {
       actualizarVisibilidadHTA();
       actualizarVisibilidadTipoTratamientoHTA();
       actualizarVisibilidadTratamientoColesterol();
+      actualizarVisibilidadActividadFisica();
 
       // 🔝 Mover scroll al inicio de la página
       window.scrollTo({ top: 0, behavior: "smooth" });

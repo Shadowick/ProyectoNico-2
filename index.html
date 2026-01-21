@@ -308,8 +308,8 @@
             <legend>Conductas: Actividad física</legend>
 
             <label for="Actividad150min">
-              ¿En las últimas 2 semanas realizó actividad física moderada o intensa
-              por al menos 150 minutos semanales?
+              En una semana habitual, ¿realiza al menos 150 minutos de actividad física
+              (caminar rápido, bicicleta, ejercicio, deportes)?
             </label>
             <select id="Actividad150min" name="Actividad150min">
               <option value="" disabled selected hidden>-- Seleccione --</option>
@@ -317,18 +317,21 @@
               <option value="2">No</option>
             </select>
 
-            <label for="Motivo_actividad">
-              ¿Cuál es el motivo principal por el que la realiza o no la realiza?
-            </label>
-            <select id="Motivo_actividad" name="Motivo_actividad">
-              <option value="" disabled selected hidden>-- Seleccione --</option>
-              <option value="1">Salud</option>
-              <option value="2">Trabajo</option>
-              <option value="3">Recreación</option>
-              <option value="4">Falta de tiempo</option>
-              <option value="5">Problemas físicos</option>
-              <option value="6">No le interesa</option>
-            </select>
+            <!-- SOLO si responde NO -->
+            <div id="bloque_motivo_no_actividad" style="display:none;">
+              <label for="Motivo_no_actividad">
+                ¿Cuál es el principal motivo por el que no realiza actividad física actualmente?
+              </label>
+              <select id="Motivo_no_actividad" name="Motivo_no_actividad">
+                <option value="" disabled selected hidden>-- Seleccione --</option>
+                <option value="1">Falta de tiempo</option>
+                <option value="2">Dolor / problema de salud / limitación física</option>
+                <option value="3">Cansancio / falta de energía</option>
+                <option value="4">Falta de interés / no le gusta</option>
+                <option value="5">Falta de lugar / inseguridad / clima</option>
+                <option value="6">No sabe qué hacer / cómo empezar</option>
+              </select>
+            </div>
           </fieldset>
 
           <!-- =================== Biomédico =================== -->
